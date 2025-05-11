@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Sentiment Analysis</title>
+    <style>
+        /* Base styles and resets */
+        :root {
+            --primary: #6c63ff;
+            --primary-light: #b4b0ff;
+            --primary-dark: #4641b7;
+            --secondary: #4db5ff;
+            --accent: #ff64bd;
+            --dark: #2a2a3d;
+            --light: #f5f5ff;
+            --success: #65D273;
+            --warning: #FFD166;
+            --danger: #EF476F;
+            --gray: #94a1b2;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            padding: 1rem 0;
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            padding: 0.7rem 0;
+            background-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo svg {
+            margin-right: 0.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f7fa, #eef2f7);
+            padding-top: 70px; /* Account for fixed header */
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s forwards 0.5s;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s forwards 0.8s;
+        }
+
+        /* Animated shapes */
+        .shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.15;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .shape-1 {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 41% 59% 70% 30% / 30% 30% 70% 70%;
+            top: 20%;
+            right: 10%;
+            animation-duration: 25s;
+        }
+
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            border-radius: 62% 38% 46% 54% / 30% 67% 33% 70%;
+            bottom: 10%;
+            left: 10%;
+            animation-duration: 30s;
+            animation-delay: 2s;
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 46% 54% 62% 38% / 63% 51% 49% 37%;
+            top: 15%;
+            left: 15%;
+            animation-duration: 20s;
+            animation-delay: 1s;
+        }
+
+        /* Main Tool Section */
+        .tool-section {
+            padding: 6rem 2rem;
+            position: relative;
+            background-color: white;
+        }
+
+        .tool-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s forwards;
+        }
+
+        .tool-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .tool-title h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .tool-title p {
+            color: var(--gray);
+        }
+
+        .tool-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        /* Form styles */
+        .input-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .custom-select {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background-color: #f8f9fa;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            appearance: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .custom-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .select-wrapper:hover .select-arrow {
+            transform: translateY(-50%) translateY(2px);
+        }
+
+        /* Button styles */
+        .button-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.9rem 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn:disabled {
+             opacity: 0.6;
+             cursor: not-allowed;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            z-index: -1;
+        }
+
+        .btn:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Output fields */
+        .output-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 3rem;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, visibility 0.6s ease, height 0.6s ease, transform 0.6s ease;
+        }
+
+        .output-container.visible {
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+            transform: translateY(0);
+        }
+
+        .sentiment-container {
+            flex: 1;
+            min-width: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .sentiment-indicator-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .sentiment-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #e6e6e6; /* Default gray */
+            animation: pulseAnimation 2s infinite ease-in-out;
+        }
+
+        /* Specific colors for sentiment indicator */
+        .sentiment-indicator.red { background-color: var(--danger); }
+        .sentiment-indicator.yellow { background-color: var(--warning); }
+        .sentiment-indicator.green { background-color: var(--success); }
+
+
+        .sentiment-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .summary-container {
+            flex: 2;
+            min-width: 250px;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .summary-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .summary-content {
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            min-height: 120px;
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Preserve line breaks */
+            word-wrap: break-word; /* Break long words */
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(108, 99, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spinner 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        /* Features section with SVG animations */
+        .features {
+            padding: 6rem 2rem;
+            background-color: #f9fafc;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: white;
+            padding: 2.5rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 4rem 0 2rem;
+            margin-top: auto;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-desc {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .footer-heading {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-link {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-link a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-link a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            50% {
+                transform: translate(30px, 30px) rotate(180deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulseAnimation {
+            0% {
+                box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(108, 99, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(108, 99, 255, 0);
+            }
+        }
+
+        /* SVG icon animations */
+        .icon-path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: dash 2s forwards;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .tool-container {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .tool-container {
+                padding: 1.5rem;
+            }
+
+            .input-container {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-container {
+                padding: 0 1rem;
+            }
+
+            .tool-title h2 {
+                font-size: 1.5rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <div class="header-container">
+            <a href="#" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                SentimentScope
+            </a>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-link">Home</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#tool" class="nav-link">Analysis Tool</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+
+        <div class="hero-content">
+            <h1>Customer Sentiment Analysis</h1>
+            <p>Get real-time insights into how your customers feel about your applications</p>
+        </div>
+    </section>
+
+    <section class="tool-section" id="tool">
+        <div class="tool-container">
+            <div class="tool-title">
+                <h2>Let's check how is customer feeling</h2>
+                <p>Select your app and duration to analyze customer sentiment</p>
+            </div>
+
+            <div class="input-container">
+                <div class="input-group">
+                    <label class="input-label">App</label>
+                    <div class="select-wrapper">
+                        <select id="appSelect" class="custom-select">
+                            <option value="" disabled selected>Select App</option>
+                            <option value="App A">App A</option>
+                            <option value="App B">App B</option>
+                        </select>
+                        <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Duration in months</label>
+                    <div class="select-wrapper">
+                        <select id="durationSelect" class="custom-select">
+                            <option value="" disabled selected>Select Duration</option>
+                            <option value="1">1</option> <option value="3">3</option>
+                            <option value="6">6</option>
+                            <option value="12">12</option>
+                        </select>
+                        <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button id="checkButton" class="btn">Check Now</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Analyzing customer sentiment...</p>
+            </div>
+
+            <div class="output-container" id="outputContainer">
+                <div class="sentiment-container">
+                    <div class="sentiment-indicator-wrapper">
+                        <div class="sentiment-indicator" id="sentimentIndicator"></div>
+                    </div>
+                    <div class="sentiment-label">Sentiment</div>
+                </div>
+
+                <div class="summary-container">
+                    <div class="summary-label">Review Summary</div>
+                    <div class="summary-content" id="summaryContent"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="features-container">
+            <div class="section-title">
+                <h2>Key Features</h2>
+                <p>Our sentiment analysis tool provides comprehensive insights</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path class="icon-path" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline class="icon-path" points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line class="icon-path" x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    <h3>Real-time Analysis</h3>
+                    <p>Get instant feedback on sentiment analysis with our powerful AI algorithms that process data in real-time.</p>
+                </div>
+
+                <div class="feature-card">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle class="icon-path" cx="12" cy="12" r="10"></circle>
+                        <path class="icon-path" d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                        <line class="icon-path" x1="9" y1="9" x2="9.01" y2="9"></line>
+                        <line class="icon-path" x1="15" y1="9" x2="15.01" y2="9"></line>
+                    </svg>
+                    <h3>Sentiment Detection</h3>
+                    <p>Our advanced algorithms accurately detect positive, neutral, and negative sentiments in your customer feedback.</p>
+                </div>
+
+                <div class="feature-card">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path class="icon-path" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                    </svg>
+                    <h3>Comprehensive Summary</h3>
+                    <p>Get detailed summaries of customer feedback to understand the sentiment behind user interactions with your app.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-container">
+            <div>
+                <a href="#" class="footer-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    SentimentScope
+                </a>
+                <p class="footer-desc">Advanced customer sentiment analysis tool for modern applications. Get real-time insights into how users feel about your product.</p>
+            </div>
+
+            <div>
+                <h3 class="footer-heading">Quick Links</h3>
+                <ul class="footer-links">
+                    <li class="footer-link"><a href="#">Home</a></li>
+                    <li class="footer-link"><a href="#features">Features</a></li>
+                    <li class="footer-link"><a href="#tool">Analysis Tool</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="footer-heading">Contact</h3>
+                <ul class="footer-links">
+                    <li class="footer-link"><a href="#">info@sentimentscope.com</a></li>
+                    <li class="footer-link"><a href="#">+1 (555) 123-4567</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2025 SentimentScope. All rights reserved.
+        </div>
+    </footer>
+
+ <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.getElementById('header');
+            const checkButton = document.getElementById('checkButton');
+            const appSelect = document.getElementById('appSelect');
+            const durationSelect = document.getElementById('durationSelect');
+            const sentimentIndicator = document.getElementById('sentimentIndicator');
+            const summaryContent = document.getElementById('summaryContent');
+            const outputContainer = document.getElementById('outputContainer');
+            const loading = document.getElementById('loading');
+
+            // *** IMPORTANT: Replace with your actual API Gateway Endpoint URL ***
+            // Get this URL from your Terraform outputs (sentiment_api_endpoint_url)
+            const API_ENDPOINT_URL = 'https://7hv1x3n8fd.execute-api.us-east-1.amazonaws.com/prod/iTunesReviewFetcherLambda'  //'https://sviaordlp0.execute-api.us-east-1.amazonaws.com/prod/fetch';
+
+            // Function to scroll smoothly
+            function smoothScroll(element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            checkButton.addEventListener('click', function() {
+                // Validate inputs
+                if (!appSelect.value || !durationSelect.value) {
+                    alert('Please select both App and Duration');
+                    return;
+                }
+
+                // Validate API Endpoint URL
+              
+
+
+                // Hide previous results and show loading state
+                outputContainer.classList.remove('visible'); // Hide previous results
+                loading.style.display = 'block'; // Show loading spinner
+                checkButton.disabled = true;
+                checkButton.textContent = 'Analyzing...';
+
+                // Get selected duration
+                const durationMonths = durationSelect.value;
+
+                // Construct the full API URL with query parameter
+                const fullApiUrl = `${API_ENDPOINT_URL}?duration_months=${durationMonths}`;
+
+                // --- Actual API Call using Fetch ---
+                fetch('https://sviaordlp0.execute-api.us-east-1.amazonaws.com/prod/fetch', {
+                    method: 'GET', // Sentiment analysis endpoint is GET
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // API Gateway handles CORS if configured correctly in Terraform/API settings
+                    }
+                    // No body needed for a GET request with query parameters
+                })
+                .then(response => {
+                    // Check for HTTP errors (e.g., 4xx or 5xx status codes)
+                    if (!response.ok) {
+                        // Attempt to read error body if available
+                        return response.json().then(errorData => {
+                            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || response.statusText}`);
+                        }).catch(() => {
+                            // If JSON parsing fails, just throw a generic error
+                            throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`);
+                        });
+                    }
+                    return response.json(); // Parse the JSON response
+                })
+                .then(data => {
+                    console.log('API Response Data:', data); // Log the response data
+
+                    // Update sentiment indicator color based on API response
+                    // API is expected to return "Red", "Yellow", or "Green"
+                    sentimentIndicator.classList.remove('red', 'yellow', 'green'); // Remove existing classes
+                    if (data && data.sentiment_indicator) {
+                        const indicator = data.sentiment_indicator.toLowerCase();
+                        if (indicator === 'red' || indicator === 'yellow' || indicator === 'green') {
+                             sentimentIndicator.classList.add(indicator); // Add class for CSS styling
+                        } else {
+                             sentimentIndicator.style.backgroundColor = '#e6e6e6'; // Default gray if unexpected value
+                             console.warn(`Unexpected sentiment_indicator value from API: ${data.sentiment_indicator}. Using default gray.`);
+                        }
+                    } else {
+                         sentimentIndicator.style.backgroundColor = '#e6e6e6'; // Default gray if data or indicator missing
+                         console.warn("API response data or 'sentiment_indicator' missing.");
+                    }
+
+
+                    // Update summary text
+                    summaryContent.textContent = (data && data.summary) ? data.summary : 'No summary available.'; // Use correct variable, handle missing summary
+
+                    // Hide loading and show results
+                    loading.style.display = 'none'; // Hide loading spinner
+                    outputContainer.classList.add('visible'); // Make output container visible
+                    smoothScroll(outputContainer); // Scroll to the results
+
+                    // Reset button
+                    checkButton.disabled = false;
+                    checkButton.textContent = 'Check Now';
+                })
+                .catch(error => {
+                    console.error('Error fetching sentiment data:', error);
+                    alert('An error occurred while analyzing sentiment: ' + error.message);
+
+                    // Hide loading, reset button, and clear previous results
+                    loading.style.display = 'none';
+                    checkButton.disabled = false;
+                    checkButton.textContent = 'Check Now';
+                    sentimentIndicator.classList.remove('red', 'yellow', 'green');
+                    sentimentIndicator.style.backgroundColor = '#e6e6e6'; // Reset to default gray
+                    summaryContent.textContent = 'Error retrieving sentiment data.';
+                    outputContainer.classList.remove('visible'); // Hide results section on error
+                });
+                // --- End Actual API Call ---
+            });
+
+             // Add scroll listener for header shrink effect
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+
+            // Intersection Observer for feature card animations
+            const featureCards = document.querySelectorAll('.feature-card');
+            const observerOptions = {
+                root: null, // relative to the viewport
+                rootMargin: '0px',
+                threshold: 0.1 // trigger when 10% of the element is visible
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Optional: Unobserve after animation to save resources
+                        // observer.unobserve(entry.target);
+                    }
+                    // Optional: Remove 'visible' class if element scrolls out of view
+                    // else {
+                    //     entry.target.classList.remove('visible');
+                    // }
+                });
+            }, observerOptions);
+
+            featureCards.forEach(card => {
+                observer.observe(card);
+            });
+
+        });
+    </script>
+</body>
+</html>

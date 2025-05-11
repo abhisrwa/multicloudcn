@@ -1,0 +1,22 @@
+# Ignore Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+crash.*.log
+*.tfplan
+*.tfplan.binary
+
+# Ignore AWS Lambda package
+*.zip
+
+# Ignore Azure Function package (example)
+# This depends on how you package your function code
+# dist/
+# package/
+
+# Ignore variables files that might contain sensitive data (if not using secrets)
+# terraform.tfvars
+# *.tfvars
+
+# Add other build/IDE specific ignores
