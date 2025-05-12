@@ -24,12 +24,12 @@ jobs:
    
     # setup code bucket and tf state
     name: Terraform Init
-      run: terraform init
-      working-directory: ./bootstrap/aws
+    run: terraform init
+    working-directory: ./bootstrap/aws
     
     name: Terraform Apply
-      run: terraform apply -auto-approve
-      working-directory: ./bootstrap/aws
+    run: terraform apply -auto-approve
+    working-directory: ./bootstrap/aws
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
