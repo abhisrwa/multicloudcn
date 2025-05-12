@@ -20,6 +20,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.x.x # Specify a suitable Terraform version
+          
       # setup code bucket and tf state
       - name: Terraform Init
         run: terraform init
@@ -84,11 +90,6 @@ jobs:
           else
           echo "terraform directory does not exist!"
           fi
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.x.x # Specify a suitable Terraform version
 
       - name: Terraform Init
         run: |
