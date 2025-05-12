@@ -21,6 +21,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          # Recommended: Use OpenID Connect (OIDC) for enhanced security
+          client-id: ${{ secrets.AZURE_CLIENT_ID }} # Azure AD App Registration Client ID
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Azure AD Tenant ID
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} # Azure Subscription ID
+          # Use federated credentials (recommended for OIDC)
+          enable-AzPSession: true # Required for some Azure CLI/PowerShell commands if needed
+          # OR (less secure): Use service principal with password/certificate
+          # creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON string of service principal credentials
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -63,18 +75,6 @@ jobs:
           echo "Lambda package NOT FOUND at repository root!"
           find . -name "sendgrid_azure.zip" -type f
           fi
-  
-      - name: Log in to Azure
-        uses: azure/login@v2
-        with:
-          # Recommended: Use OpenID Connect (OIDC) for enhanced security
-          client-id: ${{ secrets.AZURE_CLIENT_ID }} # Azure AD App Registration Client ID
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Azure AD Tenant ID
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} # Azure Subscription ID
-          # Use federated credentials (recommended for OIDC)
-          enable-AzPSession: true # Required for some Azure CLI/PowerShell commands if needed
-          # OR (less secure): Use service principal with password/certificate
-          # creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON string of service principal credentials
 
       - name: Debug Terraform setup
         run: |
