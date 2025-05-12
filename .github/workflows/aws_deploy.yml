@@ -64,6 +64,7 @@ jobs:
           npm install
       - name: Make build.sh executable
         run: chmod +x ./build.sh
+        working-directory: ./terraform/aws
   
       - name: Zip Lambda deployment package # zip -r ./terraform/aws/sendgrid_lambda.zip core aws node_modules package.json
         run: |
