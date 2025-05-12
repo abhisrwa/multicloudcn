@@ -22,11 +22,11 @@ jobs:
       uses: actions/checkout@v4
 
     # setup code bucket and tf state
-    name: Terraform InitBS
+    name: Terraform Init
       run: terraform init
       working-directory: ./bootstrap/azure
     
-    name: Terraform ApplyBS
+    name: Terraform Apply
       run: terraform apply -auto-approve -var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
       working-directory: ./bootstrap/azure
 
