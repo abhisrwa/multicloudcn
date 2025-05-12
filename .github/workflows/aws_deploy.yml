@@ -23,11 +23,11 @@ jobs:
       uses: actions/checkout@v4
    
     # setup code bucket and tf state
-    name: Terraform InitBS
+    name: Terraform Init
       run: terraform init
       working-directory: ./bootstrap/aws
     
-    name: Terraform ApplyBS
+    name: Terraform Apply
       run: terraform apply -auto-approve
       working-directory: ./bootstrap/aws
 
