@@ -26,6 +26,7 @@ output "sqs_queue_url" {
   value = aws_sqs_queue.notification.id
 }
 
+
 output "api_gateway_http_url" {
   description = "Invoke URL for HTTP API Gateway"
   value       = aws_apigatewayv2_api.http_api.api_endpoint
