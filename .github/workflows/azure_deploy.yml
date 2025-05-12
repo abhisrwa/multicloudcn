@@ -54,6 +54,21 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd functions/fetchSummary
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Install dependencies
+        run: |
+          cd functions/sendNotification
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Install dependencies
+        run: |
+          cd functions/sentimentAnalyzer
           rm -rf node_modules package-lock.json
           npm cache clean --force
           npm install
