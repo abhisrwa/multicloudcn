@@ -17,8 +17,8 @@ output "sendEmailNotification_lambda_arn" {
 
 output "dynamodb_tables" {
   value = [
-    aws_dynamodb_table.custReview.name,
-    aws_dynamodb_table.sentAnalysis.name
+    aws_dynamodb_table.customerReviews.name,
+    aws_dynamodb_table.reviewSummary.name
   ]
 }
 
