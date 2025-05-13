@@ -1,7 +1,6 @@
 resource "aws_s3_bucket" "lambda_code" {
-  bucket = "${var.project_prefix}-lambda-code"
+  bucket = "mcloud-code-bucket"
 }
-
 # --- Data Source: AWS Caller Identity (to get account ID) ---
 data "aws_caller_identity" "current" {}
 
