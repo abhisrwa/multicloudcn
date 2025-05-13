@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "tf" {
 }
 
 resource "azurerm_storage_account" "tf_state" {
-  name                     = "mccn-tf-state-bucket"
+  name                     = "mccntfstatebucket"
   resource_group_name      = azurerm_resource_group.tf.name
   location                 = azurerm_resource_group.tf.location
   account_tier             = "Standard"
@@ -25,7 +25,7 @@ resource "azurerm_storage_account" "tf_state" {
 }
 
 resource "azurerm_storage_account" "code_bucket" {
-  name                     = "mcloud-code-bucket"
+  name                     = "mcloudcodebucket"
   resource_group_name      = azurerm_resource_group.tf.name
   location                 = azurerm_resource_group.tf.location
   account_tier             = "Standard"
