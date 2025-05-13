@@ -5,6 +5,7 @@ provider "aws" {
 terraform {
   backend "s3" {}
 }
+
 resource "aws_s3_bucket" "static_site" {
   bucket = "${var.project_prefix}-static-site"
   website {
@@ -15,6 +16,23 @@ resource "aws_s3_bucket" "static_site" {
 
 resource "aws_sqs_queue" "notification" {
   name = "js-queue-items"
+}
+
+#Eventbridge Scheduler
+resource "aws_scheduler_schedule" "daily_trigger" {
+  name = "${var.project_prefix}-daily-trigger"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "rate(1 hours)"
+
+  target {
+    arn      = aws_lambda_function.sentimentAnalyzer.arn
+    role_arn = aws_iam_role.eventbridge_scheduler.arn
+
+  }
 }
 
 resource "aws_dynamodb_table" "customerReviews" {
@@ -91,3 +109,11 @@ resource "aws_apigatewayv2_stage" "default_stage" {
   name        = "$default"
   auto_deploy = true
 }
+
+# API Deployment
+resource "aws_apigatewayv2_stage" "stage" {
+  api_id      = aws_apigatewayv2_api.http_api.id
+  name        = "dev"
+  auto_deploy = true
+}
+
