@@ -9,6 +9,7 @@ provider "azurerm" {
 variable "az_resource_group" {
   description = "The resource group to be used set in the secrets."
   type        = string
+  default     = "mccntfrg"
 }
 
 resource "azurerm_resource_group" "tf" {
