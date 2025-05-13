@@ -1,6 +1,6 @@
 # Lambda IAM Role -- for fetchSummary lambda 
 resource "aws_iam_role" "fetchSummary_role" {
-  name = "lambda-dynamodb-role"
+  name = "fetchSummary_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -15,7 +15,7 @@ resource "aws_iam_role" "fetchSummary_role" {
 
 # Lambda IAM Role -- for sentimentAnalyzer lambda 
 resource "aws_iam_role" "sentimentAnalyzer_role" {
-  name = "lambda-dynamodb-role"
+  name = "sentimentAnalyzer_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -30,7 +30,7 @@ resource "aws_iam_role" "sentimentAnalyzer_role" {
 
 # Lambda IAM Role -- for sendNotification lambda 
 resource "aws_iam_role" "sendNotification_role" {
-  name = "lambda-dynamodb-role"
+  name = "sendNotification_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -173,7 +173,7 @@ resource "aws_iam_role_policy_attachment" "flambda_logs" {
 
 resource "aws_iam_policy_attachment" "flambda_dynamodb_rw_attach" {
   name       = "lambda-dynamodb-rw-attach"
-  roles      = [aws_iam_role.fetchSummary_role.name]
+  roles       = [aws_iam_role.fetchSummary_role.name]
   policy_arn = aws_iam_policy.dynamodb_rw_policy.arn
 }
 
