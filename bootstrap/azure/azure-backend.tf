@@ -14,7 +14,7 @@ variable "az_resource_group" {
 
 resource "azurerm_resource_group" "tf" {
   name     = "${var.az_resource_group}"
-  location = "centralcanada"
+  location = "canadacentral"
 }
 
 variable "subscription_id" {
