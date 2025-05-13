@@ -14,6 +14,38 @@ resource "azurerm_storage_account" "func_storage" {
   account_replication_type = "LRS"
 }
 
+# --- Azure Key Vault ---
+# This assumes you have already created the secret named 'SendGridApiKey'
+# in Azure Key Vault manually or via another process.
+resource "azurerm_key_vault" "kv" {
+  name                = var.azure_key_vault_name # Must be globally unique
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  # Required for Azure Functions to reference secrets
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  tags = {
+    Environment = "Development"
+  }
+}
+
+
+# --- Azure Key Vault Secret Access Policy for the Function App's Managed Identity ---
+resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_windows_function_app.sendNotification.identity[0].principal_id
+
+  secret_permissions = [
+    "Get", # Allow the Function App to get the secret value
+  ]
+}
+
+
 resource "azurerm_windows_function_app" "fetchSummary" {
   name                       = "${var.project_prefix}-fetchsummary"
   location                   = azurerm_resource_group.rg.location
@@ -118,7 +150,7 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
     COSMOSDB_DATABASE     = azurerm_cosmosdb_sql_database.database.name
     COSMOSDB_CUSTREVIEW   = azurerm_cosmosdb_sql_container.cust_review.name
     COSMOSDB_SENTANALYSIS = azurerm_cosmosdb_sql_container.sent_analysis.name
-    AzureWebJobsStorage            = azurerm_storage_account.func_storage.primary_connection_string
+    AzureWebJobsStorage   = azurerm_storage_account.func_storage.primary_connection_string
     
     QUEUE_URL = "https://${azurerm_storage_account.blob.name}.queue.core.windows.net/${azurerm_storage_queue.notification.name}"
   }
