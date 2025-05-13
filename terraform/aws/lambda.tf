@@ -24,7 +24,7 @@ resource "aws_lambda_function" "fetchSummary" {
   s3_key        = "fetchSummary.zip"
   handler       = "index.handler"
   runtime       = "nodejs20.x"
-  role          = aws_iam_role.fetchSummary_role.name
+  role          = aws_iam_role.fetchSummary_role.arn
   timeout       = 30
 }
 
