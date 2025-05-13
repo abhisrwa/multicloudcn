@@ -120,13 +120,13 @@ jobs:
         working-directory: ./terraform/aws
         
       - name: Terraform Plan
-        run: terraform plan -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
+        run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
         working-directory: ./terraform/aws
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"  - # -out="plan.tfplan"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
+        run: terraform apply -auto-approve -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
         working-directory: ./terraform/aws
         # If using plan file:
         # terraform apply -auto-approve "plan.tfplan"
