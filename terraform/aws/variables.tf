@@ -38,3 +38,9 @@ variable "aws_sendgrid_secret_name" {
   type        = string
   default     = "sendgrid/api_key" # Change if you named your secret differently
 }
+
+variable "aws_lambda_code_bucket" {
+  description = "The name of the bucket for code files."
+  type        = string
+  default     = "mcloud-code-bucket" # Change if you named your secret differently
+}
