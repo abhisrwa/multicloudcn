@@ -82,7 +82,7 @@ resource "aws_iam_role_policy_attachment" "lambda_secretsmanager_attachment" {
 
 resource "aws_lambda_function" "sentimentAnalyzer" {
   function_name = "${var.project_prefix}-sentimentAnalyzer"
-  s3_bucket     = aws_s3_bucket.lambda_code.bucket
+  s3_bucket     = "${var.aws_lambda_code_bucket}"
   s3_key        = "sentimentAnalyzer.zip"
   handler       = "index.handler"
   runtime       = "nodejs20.x"
@@ -92,7 +92,7 @@ resource "aws_lambda_function" "sentimentAnalyzer" {
 
 resource "aws_lambda_function" "fetchSummary" {
   function_name = "${var.project_prefix}-fetchSummary"
-  s3_bucket     = aws_s3_bucket.lambda_code.bucket
+  s3_bucket     = "${var.aws_lambda_code_bucket}"
   s3_key        = "fetchSummary.zip"
   handler       = "index.handler"
   runtime       = "nodejs20.x"
@@ -102,7 +102,7 @@ resource "aws_lambda_function" "fetchSummary" {
 
 resource "aws_lambda_function" "sendEmailNotification" {
   function_name = "${var.project_prefix}-sendNotification"
-  s3_bucket     = aws_s3_bucket.lambda_code.bucket
+  s3_bucket     = "${var.aws_lambda_code_bucket}"
   s3_key        = "sendNotification.zip"
   handler       = "index.handler"
   runtime       = "nodejs20.x"
@@ -116,6 +116,44 @@ resource "aws_lambda_function" "sendEmailNotification" {
       FROM_EMAIL                  = var.from_email_address # Sender email from Terraform variable
     }
 }
+}
+
+# IAM Role that EventBridge Scheduler assumes
+resource "aws_iam_role" "eventbridge_scheduler" {
+  name = "eventbridge-scheduler-lambda-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "scheduler.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+# IAM policy: Allow this role to invoke the Lambda function
+resource "aws_iam_role_policy" "eventbridge_scheduler_invoke_lambda" {
+  name = "eventbridge-scheduler-invoke-lambda"
+  role = aws_iam_role.eventbridge_scheduler.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Action = "lambda:InvokeFunction",
+      Resource = aws_lambda_function.sentimentAnalyzer.arn
+    }]
+  })
+}
+
+# Lambda permission: Allow EventBridge Scheduler to invoke the Lambda
+resource "aws_lambda_permission" "allow_scheduler" {
+  statement_id  = "AllowExecutionFromScheduler"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.sentimentAnalyzer.function_name
+  principal     = "scheduler.amazonaws.com"
+  source_arn    = aws_scheduler_schedule.daily_trigger.arn
 }
 
 resource "aws_scheduler_schedule" "daily_trigger" {
