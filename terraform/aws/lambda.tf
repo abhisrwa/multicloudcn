@@ -121,14 +121,18 @@ resource "aws_lambda_function" "sendEmailNotification" {
 }
 }
 
+resource "aws_scheduler_schedule" "daily_trigger" {
+  name = "${var.project_prefix}-daily-trigger"
 
-resource "aws_eventbridge_rule" "daily_trigger" {
-  name                = "${var.project_prefix}-daily-trigger"
-  schedule_expression = "rate(1 day)"
-}
+  flexible_time_window {
+    mode = "OFF"
+  }
 
-resource "aws_eventbridge_target" "trigger_sentimentAnalyzer" {
-  rule      = aws_eventbridge_rule.daily_trigger.name
-  target_id = "sentimentAnalyzer"
-  arn       = aws_lambda_function.sentimentAnalyzer.arn
+  schedule_expression = "rate(1 hours)"
+
+  target {
+    arn      = aws_lambda_function.sentimentAnalyzer.arn
+    role_arn = aws_iam_role.lambda_exec.arn
+
+  }
 }
