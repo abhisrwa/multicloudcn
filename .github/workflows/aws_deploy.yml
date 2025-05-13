@@ -103,10 +103,10 @@ jobs:
       - name: Terraform Init
         run: |
           terraform init \
-          -backend-config="bucket=my-tf-state-bucket" \
+          -backend-config="bucket=mcloud-code-bucket" \
           -backend-config="key=aws/terraform.tfstate" \
           -backend-config="region=us-east-1" \
-          -backend-config="dynamodb_table=my-tf-lock-table"
+          -backend-config="dynamodb_table=mccn-tf-lock-table"
         working-directory: ./terraform/aws
         
       - name: Terraform Plan
