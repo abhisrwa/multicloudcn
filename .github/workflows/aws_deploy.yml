@@ -37,6 +37,15 @@ jobs:
         with:
           terraform_version: 1.x.x # Specify a suitable Terraform version
 
+      # setup code bucket and tf state
+     # - name: Terraform Init
+     #   run: terraform init
+     #   working-directory: ./bootstrap/aws
+      
+     # - name: Terraform Apply
+     #   run: terraform apply -auto-approve 
+     #   working-directory: ./bootstrap/aws
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -62,10 +71,11 @@ jobs:
           rm -rf node_modules package-lock.json
           npm cache clean --force
           npm install
+
       - name: Make build.sh executable
         run: chmod +x ./build.sh
         working-directory: ./terraform/aws
-  
+
       - name: Zip Lambda deployment package # zip -r ./terraform/aws/sendgrid_lambda.zip core aws node_modules package.json
         run: |
           ./build.sh
@@ -103,17 +113,17 @@ jobs:
       - name: Terraform Init
         run: |
           terraform init \
-          -backend-config="bucket=my-tf-state-bucket" \
+          -backend-config="bucket=mcloud-code-bucket" \
           -backend-config="key=aws/terraform.tfstate" \
           -backend-config="region=us-east-1" \
-          -backend-config="dynamodb_table=my-tf-lock-table"
+          -backend-config="dynamodb_table=mccn-tf-lock-table"
         working-directory: ./terraform/aws
         
       - name: Terraform Plan
         run: terraform plan -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
         working-directory: ./terraform/aws
         # Output plan to a file for review (optional)
-        # -out="plan.tfplan"
+        # -out="plan.tfplan"  - # -out="plan.tfplan"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
