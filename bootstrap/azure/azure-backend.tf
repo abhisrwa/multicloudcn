@@ -1,6 +1,9 @@
 provider "azurerm" {
   features {}
   use_oidc = true
+  subscription_id    = var.subscription_id
+  tenant_id          = var.tenant_id
+  client_id          = var.client_id
 }
 
 variable "az_resource_group" {
@@ -11,6 +14,21 @@ variable "az_resource_group" {
 resource "azurerm_resource_group" "tf" {
   name     = "${var.az_resource_group}"
   location = "centralcanada"
+}
+
+variable "subscription_id" {
+  type        = string
+  description = "Azure Subscription ID"
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "Azure Tenant ID"
+}
+
+variable "client_id" {
+  type        = string
+  description = "Azure client ID of the Federated Identity credential"
 }
 
 resource "azurerm_storage_account" "tf_state" {
