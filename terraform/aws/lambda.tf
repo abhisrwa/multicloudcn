@@ -120,6 +120,7 @@ resource "aws_lambda_function" "sendEmailNotification" {
       FROM_EMAIL                  = var.from_email_address # Sender email from Terraform variable
     }
 }
+}
 
 
 resource "aws_eventbridge_rule" "daily_trigger" {
