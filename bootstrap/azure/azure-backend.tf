@@ -19,8 +19,6 @@ resource "azurerm_storage_account" "tf_state" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  allow_blob_public_access = false
-
   tags = {
     Name = "Terraform State Storage"
   }
@@ -32,8 +30,6 @@ resource "azurerm_storage_account" "code_bucket" {
   location                 = azurerm_resource_group.tf.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  allow_blob_public_access = false
 
   tags = {
     Name = "Code bucket"
