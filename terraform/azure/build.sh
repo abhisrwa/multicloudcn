@@ -1,17 +1,13 @@
 #!/bin/bash
 set -e
 
-RESOURCE_GROUP="DefaultResourceGroup-CCAN"
-FUNC_PREFIX="az"
+BUCKET_NAME="mcloudcodebucket"
 FUNCTIONS=("sentimentAnalyzer" "fetchSummary" "sendNotification")
 
 for func in "${FUNCTIONS[@]}"; do
-  cd ../functions/$func
+  cd ../../functions/$func ##
   npm install --omit=dev
-  zip -r ../../azure/$func.zip . -x "*.test.js"
-  az functionapp deployment source config-zip \
-    --name "$FUNC_PREFIX-$func" \
-    --resource-group "$RESOURCE_GROUP" \
-    --src ../../azure/$func.zip
-  cd - >/dev/null
-done
+  zip -r ../../terraform/azure/$func.zip . -x "*.test.js"
+  aws s3 cp ../../terraform/azure/$func.zip s3://$BUCKET_NAME/$func.zip
+  cd - >/dev/null 
+done ## End
