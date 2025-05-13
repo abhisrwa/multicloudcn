@@ -167,7 +167,7 @@ resource "aws_scheduler_schedule" "daily_trigger" {
 
   target {
     arn      = aws_lambda_function.sentimentAnalyzer.arn
-    role_arn = aws_iam_role.lambda_exec.arn
+    role_arn = aws_iam_role.eventbridge_scheduler.arn
 
   }
 }
