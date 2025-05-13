@@ -44,3 +44,11 @@ variable "aws_lambda_code_bucket" {
   type        = string
   default     = "mcloud-code-bucket" # Change if you named your secret differently
 }
+
+variable "review_table" {
+  default = "customerReviews"
+}
+
+variable "summary_table" {
+  default = "reviewSummary"
+}
