@@ -2,6 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+terraform {
+  backend "s3" {}
+}
 resource "aws_s3_bucket" "static_site" {
   bucket = "${var.project_prefix}-static-site"
   website {

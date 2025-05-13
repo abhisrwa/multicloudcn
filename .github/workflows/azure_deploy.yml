@@ -18,112 +18,128 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # setup code bucket and tf state
-    name: Terraform Init
-    run: terraform init
-    working-directory: ./bootstrap/azure
-    
-    name: Terraform Apply
-    run: terraform apply -auto-approve -var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
-    working-directory: ./bootstrap/azure
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          # Recommended: Use OpenID Connect (OIDC) for enhanced security
+          client-id: ${{ secrets.AZURE_CLIENT_ID }} # Azure AD App Registration Client ID
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Azure AD Tenant ID
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} # Azure Subscription ID
+          # Use federated credentials (recommended for OIDC)
+          enable-AzPSession: true # Required for some Azure CLI/PowerShell commands if needed
+          # OR (less secure): Use service principal with password/certificate
+          # creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON string of service principal credentials
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' # Or your preferred Node.js version
-
-    - name: Install dependencies
-      run: |
-        rm -rf node_modules package-lock.json
-        npm cache clean --force
-        npm install
-
-    - name: Zip Azure Functions deployment package
-      # Azure Functions expects the handler file (index.js) at the root of the zip
-      # We need to zip the contents of the azure and core folders, plus node_modules
-      #cp azure/index.js .  rm index.js # Clean up the copied file
-      run: | # zip -r ./terraform/azure/sendgrid_azure.zip index.js core node_modules package.json
-        ./build.sh
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.x.x # Specify a suitable Terraform version
+  
+      # setup code bucket and tf state
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./bootstrap/azure
       
-      working-directory: ./terraform/azure # Zip from the root of the repository
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
+        working-directory: ./bootstrap/azure
 
-    - name: Verify Lambda package
-      run: |
-        if [ -f "./sendgrid_azure.zip" ]; then
-        echo "Lambda package exists at repository root"
-        else
-        echo "Lambda package NOT FOUND at repository root!"
-        find . -name "sendgrid_azure.zip" -type f
-        fi
- 
-    - name: Log in to Azure
-      uses: azure/login@v2
-      with:
-        # Recommended: Use OpenID Connect (OIDC) for enhanced security
-        client-id: ${{ secrets.AZURE_CLIENT_ID }} # Azure AD App Registration Client ID
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Azure AD Tenant ID
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} # Azure Subscription ID
-        # Use federated credentials (recommended for OIDC)
-        enable-AzPSession: true # Required for some Azure CLI/PowerShell commands if needed
-        # OR (less secure): Use service principal with password/certificate
-        # creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON string of service principal credentials
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version 18 is EoS
 
-    - name: Debug Terraform setup
-      run: |
-        pwd
-        echo "Current directory contents:"
-        ls -la
+      - name: Install dependencies
+        run: |
+          cd functions/fetchSummary
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Install dependencies
+        run: |
+          cd functions/sendNotification
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Install dependencies
+        run: |
+          cd functions/sentimentAnalyzer
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Zip Azure Functions deployment package
+        # Azure Functions expects the handler file (index.js) at the root of the zip
+        # We need to zip the contents of the azure and core folders, plus node_modules
+        #cp azure/index.js .  rm index.js # Clean up the copied file
+        run: | # zip -r ./terraform/azure/sendgrid_azure.zip index.js core node_modules package.json
+          ./build.sh
+        
+        working-directory: ./terraform/azure # Zip from the root of the repository
+
+      - name: Verify Lambda package
+        run: |
+          if [ -f "./sendgrid_azure.zip" ]; then
+          echo "Lambda package exists at repository root"
+          else
+          echo "Lambda package NOT FOUND at repository root!"
+          find . -name "sendgrid_azure.zip" -type f
+          fi
+
+      - name: Debug Terraform setup
+        run: |
+          pwd
+          echo "Current directory contents:"
+          ls -la
+      
+          echo "Checking terraform directory (should exist based on workflow):"
+          if [ -d "./terraform" ]; then
+          echo "terraform directory exists"
+          ls -la ./terraform
+          if [ -d "./terraform/azure" ]; then
+          echo "terraform/azure directory exists"
+          ls -la ./terraform/azure
+          else
+          echo "terraform/azure directory does not exist!"
+          fi
+          else
+          echo "terraform directory does not exist!"
+          fi
+
+     
+      - name: Terraform Init
+        run: |
+          terraform init \
+          -backend-config="resource_group_name=my-tf-rg" \
+          -backend-config="storage_account_name=mytfstateacct" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=azure/terraform.tfstate"
+        working-directory: ./terraform/azure # Run terraform commands from the terraform directory
+
+      - name: Terraform Plan
+        run: terraform plan -var="azure_function_package_path=../sendgrid_azure.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        working-directory: ./terraform/azure
+        # Output plan to a file for review (optional)
+        # -out="plan.tfplan"
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var="azure_function_package_path=../sendgrid_azure.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        working-directory: ./terraform/azure
+        # If using plan file:
+        # terraform apply -auto-approve "plan.tfplan"
     
-        echo "Checking terraform directory (should exist based on workflow):"
-        if [ -d "./terraform" ]; then
-        echo "terraform directory exists"
-        ls -la ./terraform
-        if [ -d "./terraform/azure" ]; then
-        echo "terraform/azure directory exists"
-        ls -la ./terraform/azure
-        else
-        echo "terraform/azure directory does not exist!"
-        fi
-        else
-        echo "terraform directory does not exist!"
-        fi
+      - name: 'Deploy sentimentAnalyzer Azure Function'
+        uses: azure/functions-action@v1
+        with:
+          app-name: multicloudcn-sentimentAnalyzer
+          package: './functions/sentimentAnalyzer/src/azure'  # or wherever your code is
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.x.x # Specify a suitable Terraform version
-
-    - name: Terraform Init
-      run: |
-        terraform init \
-        -backend-config="resource_group_name=my-tf-rg" \
-        -backend-config="storage_account_name=mytfstateacct" \
-        -backend-config="container_name=tfstate" \
-        -backend-config="key=azure/terraform.tfstate"
-      working-directory: ./terraform/azure # Run terraform commands from the terraform directory
-
-    - name: Terraform Plan
-      run: terraform plan -var="azure_function_package_path=../sendgrid_azure.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-      working-directory: ./terraform/azure
-      # Output plan to a file for review (optional)
-      # -out="plan.tfplan"
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -var="azure_function_package_path=../sendgrid_azure.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-      working-directory: ./terraform/azure
-      # If using plan file:
-      # terraform apply -auto-approve "plan.tfplan"
-   
-    - name: 'Deploy sentimentAnalyzer Azure Function'
-      uses: azure/functions-action@v1
-      with:
-        app-name: multicloudcn-sentimentAnalyzer
-        package: './functions/sentimentAnalyzer/src/azure'  # or wherever your code is
-
-    # Optional: Clean up zip file
-    - name: Clean up zip file
-      run: rm ./terraform/azure/sendgrid_azure.zip
-      working-directory: ./
+      # Optional: Clean up zip file
+      - name: Clean up zip file
+        run: rm ./terraform/azure/sendgrid_azure.zip
+        working-directory: ./

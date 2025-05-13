@@ -17,98 +17,106 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-   
-    # setup code bucket and tf state
-    name: Terraform Init
-    run: terraform init
-    working-directory: ./bootstrap/aws
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Recommended: Use OIDC for enhanced security
+          role-to-assume: arn:aws:iam::863207306563:role/gitRepoAccessRole # <<< CHANGE THIS
+          role-session-name: githubactions-session
+          aws-region: ${{ env.AWS_REGION }}
+          # OR (less secure): Use static credentials from GitHub Secrets
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.x.x # Specify a suitable Terraform version
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version 18 is EOS
+
+      - name: Install dependencies
+        run: |
+          cd functions/fetchSummary
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Install dependencies
+        run: |
+          cd functions/sendNotification
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Install dependencies
+        run: |
+          cd functions/sentimentAnalyzer
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+      - name: Make build.sh executable
+        run: chmod +x ./build.sh
+        working-directory: ./terraform/aws
+  
+      - name: Zip Lambda deployment package # zip -r ./terraform/aws/sendgrid_lambda.zip core aws node_modules package.json
+        run: |
+          ./build.sh
+        working-directory: ./terraform/aws # Zip from the root of the repository
     
-    name: Terraform Apply
-    run: terraform apply -auto-approve
-    working-directory: ./bootstrap/aws
+      - name: Verify Lambda package
+        run: |
+          if [ -f "./sendgrid_lambda.zip" ]; then
+          echo "Lambda package exists at repository root"
+          else
+          echo "Lambda package NOT FOUND at repository root!"
+          find . -name "sendgrid_lambda.zip" -type f
+          fi
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' # Or your preferred Node.js version
-
-    - name: Install dependencies
-      run: |
-        rm -rf node_modules package-lock.json
-        npm cache clean --force
-        npm install
-
-    - name: Zip Lambda deployment package # zip -r ./terraform/aws/sendgrid_lambda.zip core aws node_modules package.json
-      run: |
-        ./build.sh
-      working-directory: ./terraforn/aws # Zip from the root of the repository
-   
-    - name: Verify Lambda package
-      run: |
-        if [ -f "./sendgrid_lambda.zip" ]; then
-        echo "Lambda package exists at repository root"
-        else
-        echo "Lambda package NOT FOUND at repository root!"
-        find . -name "sendgrid_lambda.zip" -type f
-        fi
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        # Recommended: Use OIDC for enhanced security
-        role-to-assume: arn:aws:iam::863207306563:role/gitRepoAccessRole # <<< CHANGE THIS
-        role-session-name: githubactions-session
-        aws-region: ${{ env.AWS_REGION }}
-        # OR (less secure): Use static credentials from GitHub Secrets
-        # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-    - name: Debug Terraform setup
-      run: |
-        pwd
-        echo "Current directory contents:"
-        ls -la
-    
-        echo "Checking terraform directory (should exist based on workflow):"
-        if [ -d "./terraform" ]; then
-        echo "terraform directory exists"
-        ls -la ./terraform
-        if [ -d "./terraform/aws" ]; then
-        echo "terraform/aws directory exists"
-        ls -la ./terraform/aws
-        else
-        echo "terraform/aws directory does not exist!"
-        fi
-        else
-        echo "terraform directory does not exist!"
-        fi
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.x.x # Specify a suitable Terraform version
-
-    - name: Terraform Init
-      run: |
-        terraform init \
-        -backend-config="bucket=my-tf-state-bucket" \
-        -backend-config="key=aws/terraform.tfstate" \
-        -backend-config="region=us-east-1" \
-        -backend-config="dynamodb_table=my-tf-lock-table"
-      working-directory: ./terraform/aws
+      - name: Debug Terraform setup
+        run: |
+          pwd
+          echo "Current directory contents:"
+          ls -la
       
-    - name: Terraform Plan
-      run: terraform plan -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
-      working-directory: ./terraform/aws
-      # Output plan to a file for review (optional)
-      # -out="plan.tfplan"
+          echo "Checking terraform directory (should exist based on workflow):"
+          if [ -d "./terraform" ]; then
+          echo "terraform directory exists"
+          ls -la ./terraform
+          if [ -d "./terraform/aws" ]; then
+          echo "terraform/aws directory exists"
+          ls -la ./terraform/aws
+          else
+          echo "terraform/aws directory does not exist!"
+          fi
+          else
+          echo "terraform directory does not exist!"
+          fi
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
-      working-directory: ./terraform/aws
-      # If using plan file:
-      # terraform apply -auto-approve "plan.tfplan"
+      - name: Terraform Init
+        run: |
+          terraform init \
+          -backend-config="bucket=my-tf-state-bucket" \
+          -backend-config="key=aws/terraform.tfstate" \
+          -backend-config="region=us-east-1" \
+          -backend-config="dynamodb_table=my-tf-lock-table"
+        working-directory: ./terraform/aws
+        
+      - name: Terraform Plan
+        run: terraform plan -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
+        working-directory: ./terraform/aws
+        # Output plan to a file for review (optional)
+        # -out="plan.tfplan"
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var="aws_lambda_package_path=./sendgrid_lambda.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}"
+        working-directory: ./terraform/aws
+        # If using plan file:
+        # terraform apply -auto-approve "plan.tfplan"
