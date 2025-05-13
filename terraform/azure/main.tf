@@ -19,25 +19,6 @@ resource "azurerm_storage_account" "blob" {
   }
 }
 
-# --- Azure Key Vault ---
-# This assumes you have already created the secret named 'SendGridApiKey'
-# in Azure Key Vault manually or via another process.
-resource "azurerm_key_vault" "kv" {
-  name                = var.azure_key_vault_name # Must be globally unique
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-
-  # Required for Azure Functions to reference secrets
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = false
-
-  tags = {
-    Environment = "Development"
-  }
-}
-
 resource "azurerm_storage_queue" "notification" {
   name                 = "js-queue-items"
   storage_account_name = azurerm_storage_account.blob.name
@@ -100,13 +81,13 @@ resource "azurerm_cosmosdb_sql_container" "sent_analysis" {
 
 resource "azurerm_role_assignment" "sentiment_cosmosdb_access" {
   scope                = azurerm_cosmosdb_account.cosmos.id
-  role_definition_name = "Cosmos DB Account Reader Role"
+  role_definition_name = "Cosmos DB Built-in Data Contributor"
   principal_id         = azurerm_windows_function_app.sentimentAnalyzer.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "fetchsummary_cosmosdb_access" {
   scope                = azurerm_cosmosdb_account.cosmos.id
-  role_definition_name = "Cosmos DB Account Reader Role"
+  role_definition_name = "Cosmos DB Built-in Data Contributor"
   principal_id         = azurerm_windows_function_app.fetchSummary.identity[0].principal_id
 }
 
