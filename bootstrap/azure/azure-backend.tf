@@ -1,5 +1,6 @@
 provider "azurerm" {
   features {}
+  use_oidc = true
 }
 
 variable "az_resource_group" {
