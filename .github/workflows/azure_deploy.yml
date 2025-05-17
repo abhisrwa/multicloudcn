@@ -44,7 +44,7 @@ jobs:
         working-directory: ./bootstrap/azure
       
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
+        run: terraform apply -auto-approve -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
         working-directory: ./bootstrap/azure
 
       - name: Set up Node.js
@@ -62,13 +62,13 @@ jobs:
         working-directory: ./terraform/azure # Run terraform commands from the terraform directory
 
       - name: Terraform Plan
-        run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
         working-directory: ./terraform/azure
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="azure_function_package_path=../sendgrid_azure.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        run: terraform apply -auto-approve -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
         working-directory: ./terraform/azure
         # If using plan file:
         # terraform apply -auto-approve "plan.tfplan"
