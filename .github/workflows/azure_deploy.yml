@@ -8,7 +8,7 @@ on:
       - main # Trigger on pushes to the main branch
 
 env:
-  AZURE_REGION: Canada Central # Default Azure region, can be overridden by Terraform variable
+  AZURE_REGION: canadacentral # Default Azure region, can be overridden by Terraform variable
 
 permissions:
   id-token: write    # Required for OIDC
