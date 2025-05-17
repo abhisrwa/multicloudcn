@@ -45,6 +45,24 @@ resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
   ]
 }
 
+resource "azurerm_storage_account_blob_container_sas" "zip_deploy_sas" {
+  storage_account_name = var.azure_code_blob_name
+  container_name       = var.azure_code_blob_container
+  start                = time_static.sas_start.rfc3339
+  expiry               = timeadd(time_static.sas_start.rfc3339, "24h")
+
+  permissions {
+    read   = true
+    list   = false
+    write  = false
+    delete = false
+    add    = false
+    create = false
+  }
+
+  https_only = true
+}
+
 
 resource "azurerm_windows_function_app" "fetchSummary" {
   name                       = "${var.project_prefix}-fetchsummary"
@@ -79,7 +97,8 @@ resource "azurerm_windows_function_app" "fetchSummary" {
     COSMOSDB_DATABASE     = azurerm_cosmosdb_sql_database.database.name
     COSMOSDB_CUSTREVIEW   = azurerm_cosmosdb_sql_container.cust_review.name
     COSMOSDB_SENTANALYSIS = azurerm_cosmosdb_sql_container.sent_analysis.name
-
+    #WEBSITE_RUN_FROM_PACKAGE = "https://${azurerm_storage_account.func_storage.name}.blob.core.windows.net/${azurerm_storage_container.function_code.name}/function.zip?${azurerm_storage_account_blob_container_sas.zip_deploy_sas.sas}"
+    #WEBSITE_RUN_FROM_PACKAGE = "https://mcloudcodebucket.blob.core.windows.net/codebucket/fetchSummary.zip?<sas-token>"
    }
 
   tags = {
