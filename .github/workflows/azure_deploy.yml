@@ -8,7 +8,7 @@ on:
       - main # Trigger on pushes to the main branch
 
 env:
-  AZURE_REGION: East US # Default Azure region, can be overridden by Terraform variable
+  AZURE_REGION: Canada Central # Default Azure region, can be overridden by Terraform variable
 
 permissions:
   id-token: write    # Required for OIDC
@@ -44,7 +44,7 @@ jobs:
         working-directory: ./bootstrap/azure
       
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
+        run: terraform apply -auto-approve #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
         working-directory: ./bootstrap/azure
 
       - name: Set up Node.js
@@ -55,14 +55,14 @@ jobs:
       - name: Terraform Init
         run: |
           terraform init \
-          -backend-config="resource_group_name=my-tf-rg" \
-          -backend-config="storage_account_name=mytfstateacct" \
+          -backend-config="resource_group_name=mccntfrg" \
+          -backend-config="storage_account_name=mccntfstatebucket" \
           -backend-config="container_name=tfstate" \
           -backend-config="key=azure/terraform.tfstate"
         working-directory: ./terraform/azure # Run terraform commands from the terraform directory
 
       - name: Terraform Plan
-        run: terraform plan -var="azure_function_package_path=../sendgrid_azure.zip" -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
         working-directory: ./terraform/azure
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"
