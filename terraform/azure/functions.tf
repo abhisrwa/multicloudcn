@@ -76,7 +76,7 @@ resource "azurerm_windows_function_app" "fetchSummary" {
     ftps_state = "Disabled"
 
     cors {
-      allowed_origins = [*] # ["https://${azurerm_storage_account.static_web.name}.z13.web.core.windows.net"]
+      allowed_origins = ["*"] # ["https://${azurerm_storage_account.static_web.name}.z13.web.core.windows.net"]
       support_credentials = false
     }
 
