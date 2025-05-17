@@ -44,17 +44,17 @@ resource "azurerm_storage_account" "tf_state" {
   }
 }
 
-resource "azurerm_storage_account" "code_bucket" {
-  name                     = "mcloudcodebucket"
-  resource_group_name      = azurerm_resource_group.tf.name
-  location                 = azurerm_resource_group.tf.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+#resource "azurerm_storage_account" "code_bucket" {
+#  name                     = "mcloudcodebucket"
+#  resource_group_name      = azurerm_resource_group.tf.name
+#  location                 = azurerm_resource_group.tf.location
+#  account_tier             = "Standard"
+#  account_replication_type = "LRS"
 
-  tags = {
-    Name = "Code bucket"
-  }
-}
+#  tags = {
+#    Name = "Code bucket"
+#  }
+#}
 
 resource "azurerm_storage_container" "tfstate" {
   name                  = "tfstate"
@@ -62,8 +62,8 @@ resource "azurerm_storage_container" "tfstate" {
   container_access_type = "private"
 }
 
-resource "azurerm_storage_container" "codebucket" {
-  name                  = "codebucket"
-  storage_account_name  = azurerm_storage_account.code_bucket.name
-  container_access_type = "private"
-}
+#resource "azurerm_storage_container" "codebucket" {
+#  name                  = "codebucket"
+#  storage_account_name  = azurerm_storage_account.code_bucket.name
+#  container_access_type = "private"
+#}
