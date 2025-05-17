@@ -33,19 +33,19 @@ jobs:
           # OR (less secure): Use service principal with password/certificate
           # creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON string of service principal credentials
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.x.x # Specify a suitable Terraform version
+     # - name: Setup Terraform
+     #   uses: hashicorp/setup-terraform@v3
+     #   with:
+     #     terraform_version: 1.x.x # Specify a suitable Terraform version
   
       # setup code bucket and tf state
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./bootstrap/azure
+      #- name: Terraform Init
+      #  run: terraform init
+      #  working-directory: ./bootstrap/azure
       
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"  -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
-        working-directory: ./bootstrap/azure
+      #- name: Terraform Apply
+      #  run: terraform apply -auto-approve -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"  -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
+      #  working-directory: ./bootstrap/azure
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -61,14 +61,14 @@ jobs:
           -backend-config="key=azure/terraform.tfstate"
         working-directory: ./terraform/azure # Run terraform commands from the terraform directory
 
-      - name: Terraform Plan
-        run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-        working-directory: ./terraform/azure
+     # - name: Terraform Plan
+     #   run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+     #   working-directory: ./terraform/azure
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        run: terraform apply -auto-approve -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"  -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
         working-directory: ./terraform/azure
         # If using plan file:
         # terraform apply -auto-approve "plan.tfplan"
