@@ -25,7 +25,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Recommended: Use OIDC for enhanced security
-          role-to-assume: arn:aws:iam::863207306563:role/gitRepoAccessRole # <<< CHANGE THIS
+          role-to-assume: ${{ env.AWS_ROLE }} # <<< CHANGE THIS
           role-session-name: githubactions-session
           aws-region: ${{ env.AWS_REGION }}
           # OR (less secure): Use static credentials from GitHub Secrets
