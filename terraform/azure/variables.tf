@@ -7,7 +7,7 @@ variable "project_prefix" {
 variable "azure_location" {
   description = "Azure region"
   type        = string
-  default     = "centralcanada"
+  default     = "canadacentral"
 }
 
 variable "from_email_address" {
@@ -41,4 +41,3 @@ variable "client_id" {
   type        = string
   description = "Azure client ID of the Federated Identity credential"
 }
-
