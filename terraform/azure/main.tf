@@ -69,7 +69,7 @@ resource "azurerm_cosmosdb_sql_container" "cust_review" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmos.name
   database_name       = azurerm_cosmosdb_sql_database.database.name
-  partition_key_path  = "/id"
+  partition_key_paths  = "/id"
   throughput          = null # Serverless, so no fixed throughput
 }
 
@@ -79,7 +79,7 @@ resource "azurerm_cosmosdb_sql_container" "sent_analysis" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmos.name
   database_name       = azurerm_cosmosdb_sql_database.database.name
-  partition_key_path  = "/id"
+  partition_key_paths  = "/id"
   throughput          = null
 }
 
@@ -138,8 +138,8 @@ resource "azurerm_api_management_api_operation" "summary_post" {
     description = "Request body"
     #query_parameters = []
     representation {
-      content_type = "application/json"
-      sample = "{\"key\": \"value\"}"
+      content_type = "application/json" 
+      example = "{\"key\": \"value\"}"
     }
   }
 }
