@@ -28,3 +28,7 @@ output "cosmosdb_primary_key" {
   value       = azurerm_cosmosdb_account.cosmos.primary_key
   sensitive   = true
 }
+
+output "summary_api_url" {
+  value = "https://${azurerm_api_management.apim.name}.azure-api.net/summary"
+}
