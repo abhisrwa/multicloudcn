@@ -6,6 +6,9 @@ provider "azurerm" {
   client_id          = var.client_id
 }
 
+data "azurerm_client_config" "current" {}
+
+
 resource "azurerm_resource_group" "rg" {
   name     = "${var.project_prefix}-rg"
   location = var.azure_location
@@ -23,6 +26,32 @@ resource "azurerm_storage_account" "static_site" {
   }
 }
 
+<<<<<<< HEAD
+=======
+resource "azurerm_storage_blob" "app_js" {
+  name                   = "app.js"
+  storage_account_name   = azurerm_storage_account.static_site.name
+  storage_container_name = "$web"
+  type                   = "Block"
+  source                 = "${path.module}/../../static-website/app.js"
+  content_type           = "application/javascript"
+}
+
+
+resource "azurerm_storage_blob" "config_js" {
+  name                   = "config.js"
+  storage_account_name   = azurerm_storage_account.static_site.name
+  storage_container_name = "$web"
+  type                   = "Block"
+  content_type           = "application/javascript"
+  source_content = <<EOT
+window._env_ = {
+  API_ENDPOINT_URL: "https://${azurerm_api_management.apim.name}.azure-api.net/summary"
+};
+EOT
+}
+
+>>>>>>> 6cd4a82211fbb8b0aeb435148734a71d270b0adc
 resource "azurerm_storage_queue" "notification" {
   name                 = "js-queue-items"
   storage_account_name = azurerm_storage_account.static_site.name
@@ -69,7 +98,7 @@ resource "azurerm_cosmosdb_sql_container" "cust_review" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmos.name
   database_name       = azurerm_cosmosdb_sql_database.database.name
-  partition_key_path  = "/id"
+  partition_key_paths  = ["/id"]
   throughput          = null # Serverless, so no fixed throughput
 }
 
@@ -79,19 +108,28 @@ resource "azurerm_cosmosdb_sql_container" "sent_analysis" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmos.name
   database_name       = azurerm_cosmosdb_sql_database.database.name
-  partition_key_path  = "/id"
+  partition_key_paths  = ["/id"]
   throughput          = null
 }
 
 resource "azurerm_role_assignment" "sentiment_cosmosdb_access" {
   scope                = azurerm_cosmosdb_account.cosmos.id
+<<<<<<< HEAD
   role_definition_name = "Cosmos DB Built-in Data Contributor"
+=======
+  #role_definition_name = "Cosmos DB Built-in Data Contributor"
+  role_definition_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+>>>>>>> 6cd4a82211fbb8b0aeb435148734a71d270b0adc
   principal_id         = azurerm_windows_function_app.sentimentAnalyzer.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "fetchsummary_cosmosdb_access" {
   scope                = azurerm_cosmosdb_account.cosmos.id
+<<<<<<< HEAD
   role_definition_name = "Cosmos DB Built-in Data Contributor"
+=======
+  role_definition_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+>>>>>>> 6cd4a82211fbb8b0aeb435148734a71d270b0adc
   principal_id         = azurerm_windows_function_app.fetchSummary.identity[0].principal_id
 }
 
@@ -118,9 +156,15 @@ resource "azurerm_api_management_api" "summary_api" {
   display_name        = "Summary API"
   path                = "summary"
   protocols           = ["https"]
+<<<<<<< HEAD
 
 }
 
+=======
+
+}
+
+>>>>>>> 6cd4a82211fbb8b0aeb435148734a71d270b0adc
 # Define the operation
 resource "azurerm_api_management_api_operation" "summary_post" {
   operation_id        = "post-summary"
@@ -138,8 +182,13 @@ resource "azurerm_api_management_api_operation" "summary_post" {
     description = "Request body"
     #query_parameters = []
     representation {
+<<<<<<< HEAD
       content_type = "application/json"
       sample = "{\"key\": \"value\"}"
+=======
+      content_type = "application/json" 
+      #example = "{\"key\": \"value\"}"
+>>>>>>> 6cd4a82211fbb8b0aeb435148734a71d270b0adc
     }
   }
 }

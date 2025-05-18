@@ -1,6 +1,6 @@
 output "blob_static_website_url" {
   description = "Blob storage static website endpoint"
-  value       = azurerm_storage_account.blob.primary_web_endpoint
+  value       = azurerm_storage_account.static_site.primary_web_endpoint
 }
 
 output "sentimentAnalyzer_function_url" {
@@ -27,4 +27,8 @@ output "cosmosdb_primary_key" {
   description = "Primary key to access CosmosDB"
   value       = azurerm_cosmosdb_account.cosmos.primary_key
   sensitive   = true
+}
+
+output "summary_api_url" {
+  value = "https://${azurerm_api_management.apim.name}.azure-api.net/summary"
 }
