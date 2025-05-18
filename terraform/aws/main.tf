@@ -14,6 +14,27 @@ resource "aws_s3_bucket" "static_site" {
   }
 }
 
+resource "aws_s3_object" "app_js" {
+  bucket       = aws_s3_bucket.static_site.id
+  key          = "app.js"
+  source       = "${path.module}/../../static-website/app.js"
+  content_type = "application/javascript"
+  acl          = "public-read"
+}
+
+resource "aws_s3_object" "config_js" {
+  bucket       = aws_s3_bucket.static_site.id
+  key          = "config.js"
+  content_type = "application/javascript"
+  content = <<EOT
+window._env_ = {
+  API_ENDPOINT_URL: "${aws_apigatewayv2_api.http_api.api_endpoint}/summary"
+};
+EOT
+  acl = "public-read"
+}
+
+
 resource "aws_sqs_queue" "notification" {
   name = "js-queue-items"
 }
@@ -101,13 +122,6 @@ resource "aws_lambda_permission" "api_invoke_permission" {
   function_name = aws_lambda_function.fetchSummary.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
-}
-
-# API Deployment
-resource "aws_apigatewayv2_stage" "default_stage" {
-  api_id      = aws_apigatewayv2_api.http_api.id
-  name        = "$default"
-  auto_deploy = true
 }
 
 # API Deployment

@@ -14,6 +14,56 @@ resource "azurerm_storage_account" "func_storage" {
   account_replication_type = "LRS"
 }
 
+# --- Azure Key Vault ---
+# This assumes you have already created the secret named 'SendGridApiKey'
+# in Azure Key Vault manually or via another process.
+resource "azurerm_key_vault" "kv" {
+  name                = var.azure_key_vault_name # Must be globally unique
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  # Required for Azure Functions to reference secrets
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  tags = {
+    Environment = "Development"
+  }
+}
+
+
+# --- Azure Key Vault Secret Access Policy for the Function App's Managed Identity ---
+resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_windows_function_app.sendNotification.identity[0].principal_id
+
+  secret_permissions = [
+    "Get", # Allow the Function App to get the secret value
+  ]
+}
+
+resource "azurerm_storage_account_blob_container_sas" "zip_deploy_sas" {
+  storage_account_name = var.azure_code_blob_name
+  container_name       = var.azure_code_blob_container
+  start                = time_static.sas_start.rfc3339
+  expiry               = timeadd(time_static.sas_start.rfc3339, "24h")
+
+  permissions {
+    read   = true
+    list   = false
+    write  = false
+    delete = false
+    add    = false
+    create = false
+  }
+
+  https_only = true
+}
+
+
 resource "azurerm_windows_function_app" "fetchSummary" {
   name                       = "${var.project_prefix}-fetchsummary"
   location                   = azurerm_resource_group.rg.location
@@ -26,7 +76,7 @@ resource "azurerm_windows_function_app" "fetchSummary" {
     ftps_state = "Disabled"
 
     cors {
-      allowed_origins = [*] # ["https://${azurerm_storage_account.static_web.name}.z13.web.core.windows.net"]
+      allowed_origins = ["*"] # ["https://${azurerm_storage_account.static_web.name}.z13.web.core.windows.net"]
       support_credentials = false
     }
 
@@ -47,7 +97,8 @@ resource "azurerm_windows_function_app" "fetchSummary" {
     COSMOSDB_DATABASE     = azurerm_cosmosdb_sql_database.database.name
     COSMOSDB_CUSTREVIEW   = azurerm_cosmosdb_sql_container.cust_review.name
     COSMOSDB_SENTANALYSIS = azurerm_cosmosdb_sql_container.sent_analysis.name
-
+    #WEBSITE_RUN_FROM_PACKAGE = "https://${azurerm_storage_account.func_storage.name}.blob.core.windows.net/${azurerm_storage_container.function_code.name}/function.zip?${azurerm_storage_account_blob_container_sas.zip_deploy_sas.sas}"
+    #WEBSITE_RUN_FROM_PACKAGE = "https://mcloudcodebucket.blob.core.windows.net/codebucket/fetchSummary.zip?<sas-token>"
    }
 
   tags = {
@@ -118,7 +169,7 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
     COSMOSDB_DATABASE     = azurerm_cosmosdb_sql_database.database.name
     COSMOSDB_CUSTREVIEW   = azurerm_cosmosdb_sql_container.cust_review.name
     COSMOSDB_SENTANALYSIS = azurerm_cosmosdb_sql_container.sent_analysis.name
-    AzureWebJobsStorage            = azurerm_storage_account.func_storage.primary_connection_string
+    AzureWebJobsStorage   = azurerm_storage_account.func_storage.primary_connection_string
     
     QUEUE_URL = "https://${azurerm_storage_account.blob.name}.queue.core.windows.net/${azurerm_storage_queue.notification.name}"
   }

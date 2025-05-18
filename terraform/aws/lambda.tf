@@ -16,6 +16,15 @@ resource "aws_lambda_function" "sentimentAnalyzer" {
   runtime       = "nodejs20.x"
   role          = aws_iam_role.sentimentAnalyzer_role.arn
   timeout       = 30
+  environment {
+    variables = {
+      # Pass the secret ARN to the Lambda function as an environment variable
+      # The Lambda code will use the AWS SDK to retrieve the secret value using this ARN
+      DB_REVIEW_TABLE = aws_dynamodb_table.customerReviews.name
+      DB_SUMM_TABLE   = aws_dynamodb_table.reviewSummary.name # Sender email from Terraform variable
+      APPID           = "389801252"
+    }
+}
 }
 
 resource "aws_lambda_function" "fetchSummary" {
@@ -24,8 +33,16 @@ resource "aws_lambda_function" "fetchSummary" {
   s3_key        = "fetchSummary.zip"
   handler       = "index.handler"
   runtime       = "nodejs20.x"
-  role          = aws_iam_role.fetchSummary_role.name
+  role          = aws_iam_role.fetchSummary_role.arn
   timeout       = 30
+  environment {
+    variables = {
+      # Pass the secret ARN to the Lambda function as an environment variable
+      # The Lambda code will use the AWS SDK to retrieve the secret value using this ARN
+      DB_REVIEW_TABLE = aws_dynamodb_table.customerReviews.name
+      DB_SUMM_TABLE   = aws_dynamodb_table.reviewSummary.name # Sender email from Terraform variable
+    }
+}
 }
 
 resource "aws_lambda_function" "sendEmailNotification" {
@@ -42,6 +59,7 @@ resource "aws_lambda_function" "sendEmailNotification" {
       # The Lambda code will use the AWS SDK to retrieve the secret value using this ARN
       SENDGRID_API_KEY_SECRET_ARN = data.aws_secretsmanager_secret.sendgrid_api_key_secret.arn
       FROM_EMAIL                  = var.from_email_address # Sender email from Terraform variable
+      TO_EMAIL                    = "testEmail"
     }
 }
 }
