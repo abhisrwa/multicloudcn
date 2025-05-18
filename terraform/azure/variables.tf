@@ -18,6 +18,7 @@ variable "from_email_address" {
 variable "azure_sendgrid_secret_name" {
   description = "Name of the secret in Azure Key Vault for the SendGrid API key"
   type        = string
+  default     = "sendgrid/api_key"
 }
 
 variable "azure_key_vault_name" {
