@@ -26,3 +26,19 @@ variable "azure_key_vault_name" {
   type        = string
   default     = "kvsendgridsecrets2" # Must be globally unique
 }
+
+variable "subscription_id" {
+  type        = string
+  description = "Azure Subscription ID"
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "Azure Tenant ID"
+}
+
+variable "client_id" {
+  type        = string
+  description = "Azure client ID of the Federated Identity credential"
+}
+
