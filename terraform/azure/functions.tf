@@ -152,7 +152,7 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
     COSMOSDB_SENTANALYSIS = azurerm_cosmosdb_sql_container.sent_analysis.name
     AzureWebJobsStorage   = azurerm_storage_account.func_storage.primary_connection_string
     
-    QUEUE_URL = "https://${azurerm_storage_account.blob.name}.queue.core.windows.net/${azurerm_storage_queue.notification.name}"
+    QUEUE_URL = "https://${azurerm_storage_account.static_site.name}.queue.core.windows.net/${azurerm_storage_queue.notification.name}"
   }
 
   tags = {
