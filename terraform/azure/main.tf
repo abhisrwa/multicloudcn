@@ -5,7 +5,9 @@ provider "azurerm" {
   tenant_id          = var.tenant_id
   client_id          = var.client_id
 }
+
 data "azurerm_client_config" "current" {}
+
 
 resource "azurerm_resource_group" "rg" {
   name     = "${var.project_prefix}-rg"
@@ -22,6 +24,29 @@ resource "azurerm_storage_account" "static_site" {
     index_document = "index.html"
     error_404_document = "404.html"
   }
+}
+
+resource "azurerm_storage_blob" "app_js" {
+  name                   = "app.js"
+  storage_account_name   = azurerm_storage_account.static_site.name
+  storage_container_name = "$web"
+  type                   = "Block"
+  source                 = "${path.module}/../../static-website/app.js"
+  content_type           = "application/javascript"
+}
+
+
+resource "azurerm_storage_blob" "config_js" {
+  name                   = "config.js"
+  storage_account_name   = azurerm_storage_account.static_site.name
+  storage_container_name = "$web"
+  type                   = "Block"
+  content_type           = "application/javascript"
+  source_content = <<EOT
+window._env_ = {
+  API_ENDPOINT_URL: "https://${azurerm_api_management.apim.name}.azure-api.net/summary"
+};
+EOT
 }
 
 resource "azurerm_storage_queue" "notification" {
