@@ -1,6 +1,6 @@
 output "blob_static_website_url" {
   description = "Blob storage static website endpoint"
-  value       = azurerm_storage_account.blob.primary_web_endpoint
+  value       = azurerm_storage_account.static_site.primary_web_endpoint
 }
 
 output "sentimentAnalyzer_function_url" {
