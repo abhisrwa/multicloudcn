@@ -49,7 +49,7 @@ resource "azurerm_cosmosdb_account" "cosmos" {
     name = "EnableServerless" # Serverless mode (no RU/s)
   }
 
-  enable_free_tier = true
+  #enable_free_tier = true
 
   tags = {
     Environment = "Development"
@@ -131,13 +131,13 @@ resource "azurerm_api_management_api_operation" "summary_post" {
   method              = "POST"
   url_template        = "/"
   response {
-    status = 200
+    status_code = 200
     description = "OK"
   }
   request {
     description = "Request body"
-    query_parameters = []
-    representations {
+    #query_parameters = []
+    representation {
       content_type = "application/json"
       sample = "{\"key\": \"value\"}"
     }
