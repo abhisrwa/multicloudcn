@@ -21,7 +21,7 @@ resource "azurerm_key_vault" "kv" {
   name                = var.azure_key_vault_name # Must be globally unique
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  tenant_id           = var.tenant_id
   sku_name            = "standard"
 
   # Required for Azure Functions to reference secrets
@@ -37,32 +37,13 @@ resource "azurerm_key_vault" "kv" {
 # --- Azure Key Vault Secret Access Policy for the Function App's Managed Identity ---
 resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
   key_vault_id = azurerm_key_vault.kv.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
+  tenant_id    = var.tenant_id
   object_id    = azurerm_windows_function_app.sendNotification.identity[0].principal_id
 
   secret_permissions = [
     "Get", # Allow the Function App to get the secret value
   ]
 }
-
-resource "azurerm_storage_account_blob_container_sas" "zip_deploy_sas" {
-  storage_account_name = var.azure_code_blob_name
-  container_name       = var.azure_code_blob_container
-  start                = time_static.sas_start.rfc3339
-  expiry               = timeadd(time_static.sas_start.rfc3339, "24h")
-
-  permissions {
-    read   = true
-    list   = false
-    write  = false
-    delete = false
-    add    = false
-    create = false
-  }
-
-  https_only = true
-}
-
 
 resource "azurerm_windows_function_app" "fetchSummary" {
   name                       = "${var.project_prefix}-fetchsummary"
