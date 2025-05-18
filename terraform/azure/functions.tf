@@ -62,7 +62,7 @@ resource "azurerm_windows_function_app" "fetchSummary" {
     }
 
     application_stack {
-      node_version = "20"
+      node_version = "~20"
     }
   }
 
@@ -99,7 +99,7 @@ resource "azurerm_windows_function_app" "sendNotification" {
     ftps_state = "Disabled"
    
     application_stack {
-      node_version = "20"
+      node_version = "~20"
     }
   }
 
@@ -134,7 +134,7 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
     ftps_state = "Disabled"
    
     application_stack {
-      node_version = "20"
+      node_version = "~20"
     }
   }
 
