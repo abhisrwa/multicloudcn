@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
         checkButton.textContent = 'Analyzing...';
 
         const durationMonths = durationSelect.value;
-        const fullApiUrl = \`\${API_ENDPOINT_URL}?duration_months=\${durationMonths}\`;
-
+        const fullApiUrl = `${API_ENDPOINT_URL}`; 
+        
         fetch(fullApiUrl, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json().then(errorData => {
                     throw new Error(errorData?.error || response.statusText);
                 }).catch(() => {
-                    throw new Error(\`HTTP error! Status: \${response.status}\`);
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 });
             }
             return response.json();
