@@ -39,6 +39,13 @@ variable "aws_sendgrid_secret_name" {
   default     = "sendgrid/api_key" # Change if you named your secret differently
 }
 
+variable "azure_sendgrid_secret_val" {
+  description = "Value of the secret in Azure Key Vault for the SendGrid API key"
+  type        = string
+  default     = "123"
+  
+}
+
 variable "aws_lambda_code_bucket" {
   description = "The name of the bucket for code files."
   type        = string

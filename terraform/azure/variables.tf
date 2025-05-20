@@ -21,6 +21,13 @@ variable "azure_sendgrid_secret_name" {
   default     = "sendgridApikey"
 }
 
+variable "azure_sendgrid_secret_val" {
+  description = "Value of the secret in Azure Key Vault for the SendGrid API key"
+  type        = string
+  default     = "123"
+  
+}
+
 variable "azure_key_vault_name" {
   description = "The name for the Azure Key Vault."
   type        = string
