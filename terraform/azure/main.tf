@@ -22,7 +22,7 @@ resource "azurerm_storage_account" "static_site" {
   account_replication_type = "LRS"
   static_website {
     index_document = "index.html"
-    error_404_document = "404.html"
+    error_404_document = "error.html"
   }
 }
 
@@ -193,31 +193,6 @@ resource "azurerm_api_management_api_operation_policy" "summary_post_cors" {
         <header>*</header>
       </allowed-headers>
     </cors>
-  </inbound>
-  <backend>
-    <base />
-  </backend>
-  <outbound>
-    <base />
-  </outbound>
-</policies>
-XML
-  depends_on = [
-    azurerm_api_management_api_operation.summary_post
-  ]
-}
-
-# Backend setting: connects APIM to the Function App endpoint
-resource "azurerm_api_management_api_operation_policy" "backend_forward" {
-  api_name            = azurerm_api_management_api.summary_api.name
-  api_management_name = azurerm_api_management.apim.name
-  resource_group_name = azurerm_resource_group.rg.name
-  operation_id        = azurerm_api_management_api_operation.summary_post.operation_id
-
-  xml_content = <<XML
-<policies>
-  <inbound>
-    <base />
     <set-backend-service base-url="https://${azurerm_windows_function_app.fetchSummary.default_hostname}/api/fetchSummary" />
   </inbound>
   <backend>
@@ -232,3 +207,4 @@ XML
     azurerm_api_management_api_operation.summary_post
   ]
 }
+
