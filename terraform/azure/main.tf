@@ -109,16 +109,22 @@ resource "azurerm_cosmosdb_sql_container" "sent_analysis" {
   throughput          = null
 }
 
+data "azurerm_role_definition" "user_access_admin" {
+  name  = "User Access Administrator"
+  scope = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+}
+
+
 resource "azurerm_role_assignment" "sentiment_cosmosdb_access" {
   scope                = azurerm_resource_group.rg.id #azurerm_cosmosdb_account.cosmos.id
   #role_definition_name = "Cosmos DB Built-in Data Contributor"
-  role_definition_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+  role_definition_id   = data.azurerm_role_definition.user_access_admin.id
   principal_id         = azurerm_windows_function_app.sentimentAnalyzer.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "fetchsummary_cosmosdb_access" {
   scope                = azurerm_resource_group.rg.id #azurerm_cosmosdb_account.cosmos.id
-  role_definition_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+  role_definition_id   = data.azurerm_role_definition.user_access_admin.id
   principal_id         = azurerm_windows_function_app.fetchSummary.identity[0].principal_id
 }
 

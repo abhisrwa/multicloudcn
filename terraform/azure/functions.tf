@@ -33,6 +33,11 @@ resource "azurerm_key_vault" "kv" {
   }
 }
 
+resource "azurerm_key_vault_secret" "sg_secret" {
+  name         = var.azure_sendgrid_secret_name
+  value        = var.azure_sendgrid_secret_val
+  key_vault_id = azurerm_key_vault.kv.id
+}
 
 # --- Azure Key Vault Secret Access Policy for the Function App's Managed Identity ---
 resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
