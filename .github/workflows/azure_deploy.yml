@@ -66,7 +66,10 @@ jobs:
      #   working-directory: ./terraform/azure
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"
-
+      - name: Terraform Plan
+        run: terraform plan -refresh=true
+        working-directory: ./terraform/azure
+        
       - name: Terraform Apply
         run: terraform apply -auto-approve -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"  -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" #-var="az_resource_group=${{ secrets.AZURE_RESOURCE_GROUP }}"
         working-directory: ./terraform/azure
