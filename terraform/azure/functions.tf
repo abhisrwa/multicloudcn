@@ -27,7 +27,17 @@ resource "azurerm_key_vault" "kv" {
   # Required for Azure Functions to reference secrets
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id 
 
+    key_permissions = [
+      "Get", "List", "Create", "Delete", "Recover", "Purge", "Update", "Import", "Backup", "Restore"
+    ]
+    secret_permissions = [
+      "Get", "List", "Set", "Delete", "Recover", "Purge", "Backup", "Restore"
+    ]
+  }
   tags = {
     Environment = "Development"
   }
@@ -163,6 +173,18 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
   tags = {
     Environment = "Development"
   }
+}
+
+resource "azurerm_key_vault_access_policy" "sg_access" {
+  key_vault_id = azurerm_key_vault.kv.id
+
+  tenant_id = azurerm_windows_function_app.sentimentAnalyzer.identity[0].tenant_id
+  object_id = azurerm_windows_function_app.sentimentAnalyzer.identity[0].principal_id
+
+  secret_permissions = [
+    "get",
+    "list"
+  ]
 }
 
 # Duplicate and modify for fetchSummary and sendEmailNotification functions
