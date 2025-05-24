@@ -32,3 +32,8 @@ output "cosmosdb_primary_key" {
 output "summary_api_url" {
   value = "https://${azurerm_api_management.apim.name}.azure-api.net/summary"
 }
+
+output "terraform_executor_object_id_from_client_config" {
+  value = data.azurerm_client_config.current.object_id
+  description = "The Object ID of the identity running Terraform as seen by AzureRM provider."
+}

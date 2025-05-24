@@ -17,6 +17,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_from_email_address: ${{ secrets.FROM_EMAIL_ADDRESS }}
+      TF_VAR_aws_sendgrid_secret_val: ${{ secrets.SGKEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,9 +28,9 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Recommended: Use OIDC for enhanced security
-          role-to-assume: ${{ env.AWS_ROLE }} # <<< CHANGE THIS
+          role-to-assume: ${{ secrets.AWS_ROLE }} # <<< CHANGE THIS
           role-session-name: githubactions-session
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
           # OR (less secure): Use static credentials from GitHub Secrets
           # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -109,15 +112,15 @@ jobs:
           -backend-config="region=us-east-1" \
           -backend-config="dynamodb_table=mccn-tf-lock-table"
         working-directory: ./terraform/aws
-        
+             
       - name: Terraform Plan
-        run: terraform plan -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_sendgrid_secret_val=${{ secrets.SGKEY }}"
+        run: terraform plan -auto-approve
         working-directory: ./terraform/aws
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"  - # -out="plan.tfplan"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_sendgrid_secret_val=${{ secrets.SGKEY }}"
+        run: terraform apply -auto-approve #-var="from_email_address=${{ secrets.FROM_EMAIL_ADDRESS }}" -var="azure_sendgrid_secret_val=${{ secrets.SGKEY }}"
         working-directory: ./terraform/aws
         # If using plan file:
         # terraform apply -auto-approve "plan.tfplan"
