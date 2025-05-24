@@ -92,7 +92,12 @@ resource "aws_scheduler_schedule" "daily_trigger" {
     mode = "OFF"
   }
 
-  schedule_expression = "at(2025-05-24T20:00:00Z)"
+    # Run once daily at 8 PM UTC
+  schedule_expression = "cron(0 20 * * ? *)"
+  
+  # Or specify timezone if needed
+  schedule_expression_timezone = "UTC"
+
   #schedule_expression = "at(${local.future_time})" #"rate(1 hours)"
 
   target {
