@@ -43,23 +43,23 @@ resource "azurerm_key_vault" "kv" {
   }
 }
 
+resource "time_sleep" "wait_for_kv_policy_propagation" {
+  # This duration can be adjusted. 30 seconds is often enough,
+  # but sometimes 60 seconds might be needed for very slow regions/deployments.
+  create_duration = "80s"
+
+  # Crucially, this sleep resource must depend on the Key Vault being created
+  # so that the policy is already applied before the timer starts.
+  depends_on = [azurerm_key_vault.kv]
+}
+
 resource "azurerm_key_vault_secret" "sg_secret" {
   name         = var.azure_sendgrid_secret_name
   value        = var.azure_sendgrid_secret_val
   key_vault_id = azurerm_key_vault.kv.id
+  depends_on = [time_sleep.wait_for_kv_policy_propagation]
 }
 
-# --- Azure Key Vault Secret Access Policy for the Function App's Managed Identity ---
-resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
-  key_vault_id = azurerm_key_vault.kv.id
-  tenant_id    = var.tenant_id
-  object_id    = azurerm_windows_function_app.sendNotification.identity[0].principal_id
-
-  secret_permissions = [
-    "Get", # Allow the Function App to get the secret value
-    "List" 
-  ]
-}
 
 resource "azurerm_windows_function_app" "fetchSummary" {
   name                       = "${var.project_prefix}-fetchsummary"
@@ -175,5 +175,15 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
     Environment = "Development"
   }
 }
+# --- Azure Key Vault Secret Access Policy for the Function App's Managed Identity ---
+resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = var.tenant_id
+  object_id    = azurerm_windows_function_app.sendNotification.identity[0].principal_id
 
+  secret_permissions = [
+    "Get", # Allow the Function App to get the secret value
+    "List" 
+  ]
+}
 # Duplicate and modify for fetchSummary and sendEmailNotification functions

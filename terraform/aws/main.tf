@@ -1,4 +1,4 @@
-# This creates DynamoDB, Static Website S3 bucket, SQS, Eventbridge Scheduler and API gateway
+# This creates Static Website S3 bucket, SQS, Eventbridge Scheduler and API gateway
 
 provider "aws" {
   region = var.aws_region
@@ -63,20 +63,15 @@ resource "aws_s3_bucket_ownership_controls" "static_website_acl_ownership" {
 }
 
 
-# Create SQS
-resource "aws_sqs_queue" "notification" {
-  name = "js-queue-items"
-}
-
 # Calculate future time to schedule the Lambda run using eventbridge scheduler
 locals {
   # This will be the time 5 minutes from when terraform apply starts (roughly)
-  future_time = timeadd(timestamp(), "10m")
+  future_time = timeadd(timestamp(), "15m")
 }
 
 #Eventbridge Scheduler
 resource "aws_scheduler_schedule" "daily_trigger" {
-  name = "${var.project_prefix}-daily-trigger"
+  name = "${var.project_prefix}-trigger"
 
   flexible_time_window {
     mode = "OFF"
@@ -90,36 +85,6 @@ resource "aws_scheduler_schedule" "daily_trigger" {
 
   }
   depends_on = [aws_lambda_function.sentimentAnalyzer]
-}
-
-resource "aws_dynamodb_table" "customerReviews" {
-  name           = "customerReviews"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "id"
-  range_key     = "updated"
-  attribute {
-    name = "id"
-    type = "S"
-  }
-  attribute {
-    name = "updated"
-    type = "S"
-  }
-}
-
-resource "aws_dynamodb_table" "reviewSummary" {
-  name           = "reviewSummary"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "id"
-  range_key     = "mrange"
-  attribute {
-    name = "id"
-    type = "S"
-  }
-  attribute {
-    name = "mrange"
-    type = "S"
-  }
 }
 
 # Create the HTTP API
