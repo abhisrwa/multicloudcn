@@ -37,7 +37,7 @@ window._env_ = {
   API_ENDPOINT_URL: "${aws_apigatewayv2_api.http_api.api_endpoint}/summary"
 };
 EOT
-  acl = "public-read"
+  #acl = "public-read"
 }
 
 resource "aws_s3_bucket_policy" "static_website_policy" {
