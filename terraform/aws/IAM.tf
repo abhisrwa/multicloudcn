@@ -142,9 +142,8 @@ resource "aws_iam_role_policy_attachment" "slambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_iam_policy_attachment" "slambda_dynamodb_rw_attach" {
-  name       = "lambda-dynamodb-rw-attach"
-  roles      = [aws_iam_role.sentimentAnalyzer_role.name]
+resource "aws_iam_role_policy_attachment" "slambda_dynamodb_rw_attach" {
+  role      = aws_iam_role.sentimentAnalyzer_role.name
   policy_arn = aws_iam_policy.dynamodb_rw_policy.arn
 }
 
@@ -174,9 +173,8 @@ resource "aws_iam_role_policy_attachment" "flambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_iam_policy_attachment" "flambda_dynamodb_rw_attach" {
-  name       = "lambda-dynamodb-rw-attach"
-  roles       = [aws_iam_role.fetchSummary_role.name]
+resource "aws_iam_role_policy_attachment" "flambda_dynamodb_rw_attach" {
+  role       = aws_iam_role.fetchSummary_role.name
   policy_arn = aws_iam_policy.dynamodb_rw_policy.arn
 }
 

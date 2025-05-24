@@ -10,15 +10,18 @@ terraform {
 
 resource "aws_s3_bucket" "static_site" {
   bucket = "${var.project_prefix}-static-site"
+
   website {
     index_document = "index.html"
     error_document = "error.html"
   }
-  acl    = "public-read"
+
+  # Optional: Only needed if you're using ACLs explicitly.
+  # acl = "public-read"
 }
 
 resource "aws_s3_object" "app_js" {
-  bucket       = aws_s3_bucket.static_site.id
+  bucket       = aws_s3_bucket.static_site.bucket
   key          = "app.js"
   source       = "${path.module}/../../static-website/app.js"
   content_type = "application/javascript"
@@ -26,7 +29,7 @@ resource "aws_s3_object" "app_js" {
 }
 
 resource "aws_s3_object" "config_js" {
-  bucket       = aws_s3_bucket.static_site.id
+  bucket       = aws_s3_bucket.static_site.bucket
   key          = "config.js"
   content_type = "application/javascript"
   content = <<EOT
@@ -38,28 +41,34 @@ EOT
 }
 
 resource "aws_s3_bucket_policy" "static_website_policy" {
-  bucket = aws_s3_bucket.static_site.bucket
+  bucket = aws_s3_bucket.static_site.id
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
         Effect = "Allow",
-        Principal = {
-          AWS = "*" # Grants access to everyone
-        },
+        Principal = "*",
         Action = "s3:GetObject",
-        Resource = "${aws_s3_bucket.static_site.arn}/*" # Grants access to objects within the bucket
-      },
+        Resource = "${aws_s3_bucket.static_site.arn}/*"
+      }
     ]
   })
 }
 
 resource "aws_s3_bucket_ownership_controls" "static_website_acl_ownership" {
-  # Required to allow setting ACLs
-  bucket = aws_s3_bucket.static_site.bucket
+  bucket = aws_s3_bucket.static_site.id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
+}
+
+resource "aws_s3_bucket_public_access_block" "static_wsite" {
+  bucket = aws_s3_bucket.static_site.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
 
 # Create SQS
@@ -70,8 +79,8 @@ resource "aws_sqs_queue" "notification" {
 
 # Calculate future time to schedule the Lambda run using eventbridge scheduler
 locals {
-  # This will be the time 5 minutes from when terraform apply starts (roughly)
-  future_time = timeadd(timestamp(), "15m")
+  # Add 15 minutes to current time and format as ISO 8601
+  future_time = formatdate("YYYY-MM-DD'T'HH:mm:ss'Z'", timeadd(timestamp(), "15m"))
 }
 
 #Eventbridge Scheduler
