@@ -116,14 +116,14 @@ data "azurerm_role_definition" "user_access_admin" {
 
 
 resource "azurerm_role_assignment" "sentiment_cosmosdb_access" {
-  scope                = ${data.azurerm_client_config.current.subscription_id} #azurerm_cosmosdb_account.cosmos.id
+  scope                = azurerm_resource_group.rg.id #azurerm_cosmosdb_account.cosmos.id
   role_definition_name = "Cosmos DB Operator"
   #role_definition_id   = data.azurerm_role_definition.user_access_admin.id
   principal_id         = azurerm_windows_function_app.sentimentAnalyzer.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "fetchsummary_cosmosdb_access" {
-  scope                = ${data.azurerm_client_config.current.subscription_id} #azurerm_cosmosdb_account.cosmos.id
+  scope                = azurerm_resource_group.rg.id  #azurerm_cosmosdb_account.cosmos.id
   role_definition_name = "Cosmos DB Operator"
   #role_definition_id   = data.azurerm_role_definition.user_access_admin.id
   principal_id         = azurerm_windows_function_app.fetchSummary.identity[0].principal_id
