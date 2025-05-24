@@ -79,10 +79,11 @@ resource "aws_sqs_queue" "notification" {
 
 # Calculate future time to schedule the Lambda run using eventbridge scheduler
 locals {
-  # Add 15 minutes to current time and format as ISO 8601
-  future_time = formatdate("2006-01-02T15:04:05Z", timeadd(timestamp(), "15m")) #formatdate("YYYY-MM-DD'T'HH:mm:ss'Z'", timeadd(timestamp(), "15m"))
+  raw_time     = timeadd(timestamp(), "15m")
+  date_part    = formatdate("YYYY-MM-DD", local.raw_time)
+  time_part    = formatdate("HH:mm:ss", local.raw_time)
+  future_time  = "${local.date_part}T${local.time_part}Z"
 }
-
 #Eventbridge Scheduler
 resource "aws_scheduler_schedule" "daily_trigger" {
   name = "${var.project_prefix}-trigger"
