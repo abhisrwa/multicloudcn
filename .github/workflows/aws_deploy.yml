@@ -114,7 +114,7 @@ jobs:
         working-directory: ./terraform/aws
              
       - name: Terraform Plan
-        run: terraform plan -auto-approve
+        run: terraform plan 
         working-directory: ./terraform/aws
         # Output plan to a file for review (optional)
         # -out="plan.tfplan"  - # -out="plan.tfplan"

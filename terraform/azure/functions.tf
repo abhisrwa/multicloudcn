@@ -27,20 +27,23 @@ resource "azurerm_key_vault" "kv" {
   # Required for Azure Functions to reference secrets
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id 
+  
+}
 
-    key_permissions = [
-      "Get", "List", "Create", "Delete", "Recover", "Purge", "Update", "Import", "Backup", "Restore"
-    ]
-    secret_permissions = [
-      "Get", "List", "Set", "Delete", "Recover", "Purge", "Backup", "Restore" #permissions
-    ]
-  }
-  tags = {
-    Environment = "Development"
-  }
+resource "azurerm_key_vault_access_policy" "github_actions" {
+  key_vault_id = azurerm_key_vault.kv.id
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id # <-- Your GitHub Actions SP Object ID
+
+  secret_permissions = [
+    "Get",
+    "Set",
+    "List"
+  ]
+  key_permissions = [
+      "Get", "List", "Create", "Delete"
+  ]
 }
 
 resource "time_sleep" "wait_for_kv_policy_propagation" {
