@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "kv" {
       "Get", "List", "Create", "Delete", "Recover", "Purge", "Update", "Import", "Backup", "Restore"
     ]
     secret_permissions = [
-      "Get", "List", "Set", "Delete", "Recover", "Purge", "Backup", "Restore"
+      "Get", "List", "Set", "Delete", "Recover", "Purge", "Backup", "Restore" #permissions
     ]
   }
   tags = {
@@ -173,18 +173,6 @@ resource "azurerm_windows_function_app" "sentimentAnalyzer" {
   tags = {
     Environment = "Development"
   }
-}
-
-resource "azurerm_key_vault_access_policy" "sg_access" {
-  key_vault_id = azurerm_key_vault.kv.id
-
-  tenant_id = azurerm_windows_function_app.sentimentAnalyzer.identity[0].tenant_id
-  object_id = azurerm_windows_function_app.sentimentAnalyzer.identity[0].principal_id
-
-  secret_permissions = [
-    "get",
-    "list"
-  ]
 }
 
 # Duplicate and modify for fetchSummary and sendEmailNotification functions
