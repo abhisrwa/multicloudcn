@@ -92,7 +92,8 @@ resource "aws_scheduler_schedule" "daily_trigger" {
     mode = "OFF"
   }
 
-  schedule_expression = "at(${local.future_time})" #"rate(1 hours)"
+  schedule_expression = "at(2025-05-24T20:00:00Z)"
+  #schedule_expression = "at(${local.future_time})" #"rate(1 hours)"
 
   target {
     arn      = aws_lambda_function.sentimentAnalyzer.arn
