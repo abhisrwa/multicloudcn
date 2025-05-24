@@ -13,7 +13,7 @@ resource "aws_iam_role" "fetchSummary_role" {
   })
 }
 
-# Lambda IAM Role -- for sentimentAnalyzer lambda function
+# Lambda IAM Role -- for sentimentAnalyzer lambda
 
 resource "aws_iam_role" "sentimentAnalyzer_role" {
   name = "sentimentAnalyzer_role"

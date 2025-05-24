@@ -1,4 +1,6 @@
 
+# It creates DynamoDB tables
+
 resource "aws_dynamodb_table" "customerReviews" {
   name           = "customerReviews"
   billing_mode   = "PAY_PER_REQUEST"

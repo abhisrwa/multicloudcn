@@ -65,7 +65,7 @@ resource "aws_lambda_function" "sendEmailNotification" {
     variables = {
       # Pass the secret ARN to the Lambda function as an environment variable
       # The Lambda code will use the AWS SDK to retrieve the secret value using this ARN
-      SENDGRID_API_KEY_SECRET_ARN = data.aws_secretsmanager_secret.sendgrid_api_key_secret.arn
+      SENDGRID_API_KEY_SECRET_ARN = aws_secretsmanager_secret.sendgrid_api_key_secret.arn
       FROM_EMAIL                  = var.from_email_address # Sender email from Terraform variable
       TO_EMAIL                    = "testEmail"
     }

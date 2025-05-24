@@ -62,6 +62,11 @@ resource "aws_s3_bucket_ownership_controls" "static_website_acl_ownership" {
   }
 }
 
+# Create SQS
+resource "aws_sqs_queue" "notification" {
+  name = "js-queue-items"
+}
+
 
 # Calculate future time to schedule the Lambda run using eventbridge scheduler
 locals {

@@ -13,6 +13,7 @@ variable "aws_region" {
 variable "from_email_address" {
   description = "The verified sender email address in SendGrid."
   type        = string
+  sensitive   = true
 }
 
 variable "aws_lambda_function_name_analysis" {
@@ -37,6 +38,7 @@ variable "aws_sendgrid_secret_name" {
   description = "The name of the secret in AWS Secrets Manager containing the SendGrid API Key."
   type        = string
   default     = "sendgrid/api_key" # Change if you named your secret differently
+  sensitive   = true
 }
 
 variable "aws_sendgrid_secret_val" {
