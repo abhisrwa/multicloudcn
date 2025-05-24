@@ -39,11 +39,11 @@ variable "aws_sendgrid_secret_name" {
   default     = "sendgrid/api_key" # Change if you named your secret differently
 }
 
-variable "azure_sendgrid_secret_val" {
-  description = "Value of the secret in Azure Key Vault for the SendGrid API key"
+variable "aws_sendgrid_secret_val" {
+  description = "Value of the secret in AWS Secrets Manager for the API key"
   type        = string
   default     = "123"
-  
+  sensitive   = true
 }
 
 variable "aws_lambda_code_bucket" {

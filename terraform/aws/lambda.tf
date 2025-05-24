@@ -1,18 +1,20 @@
+# This creates lambda functions and Secert Manager Key
+
 # --- Data Source: AWS Caller Identity (to get account ID) ---
 data "aws_caller_identity" "current" {}
 
 # --- Data Source: AWS Secrets Manager Secret ---
-# This assumes you have already created the secret named 'sendgrid/api_key'
-# in AWS Secrets Manager manually or via another process.
+# AWS Secrets Manager creation of a secret
 resource "aws_secretsmanager_secret" "sendgrid_api_key_secret" {
   name = var.aws_sendgrid_secret_name # e.g., "sendgrid/api_key"
 }
-
+# AWS Secrets Manager: Add the Secret Key Value
 resource "aws_secretsmanager_secret_version" "sendgrid_api_key_version" {
   secret_id     = aws_secretsmanager_secret.sendgrid_api_key_secret.id
-  secret_string = var.azure_sendgrid_secret_val
+  secret_string = var.aws_sendgrid_secret_val
 }
 
+# Create Lambda Function sentimentAnalyzer
 resource "aws_lambda_function" "sentimentAnalyzer" {
   function_name = "${var.project_prefix}-sentimentAnalyzer"
   s3_bucket     = "${var.aws_lambda_code_bucket}"
@@ -32,6 +34,7 @@ resource "aws_lambda_function" "sentimentAnalyzer" {
 }
 }
 
+# Create Lambda Function to fetch summary
 resource "aws_lambda_function" "fetchSummary" {
   function_name = "${var.project_prefix}-fetchSummary"
   s3_bucket     = "${var.aws_lambda_code_bucket}"
@@ -49,7 +52,7 @@ resource "aws_lambda_function" "fetchSummary" {
     }
 }
 }
-
+# Create Lambda function to send email
 resource "aws_lambda_function" "sendEmailNotification" {
   function_name = "${var.project_prefix}-sendNotification"
   s3_bucket     = "${var.aws_lambda_code_bucket}"

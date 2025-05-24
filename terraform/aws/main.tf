@@ -1,3 +1,5 @@
+# This creates DynamoDB, Static Website S3 bucket, SQS, Eventbridge Scheduler and API gateway
+
 provider "aws" {
   region = var.aws_region
 }
@@ -12,6 +14,7 @@ resource "aws_s3_bucket" "static_site" {
     index_document = "index.html"
     error_document = "error.html"
   }
+  acl    = "public-read"
 }
 
 resource "aws_s3_object" "app_js" {
@@ -34,9 +37,41 @@ EOT
   acl = "public-read"
 }
 
+resource "aws_s3_bucket_policy" "static_website_policy" {
+  bucket = aws_s3_bucket.static_site.bucket
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = "*" # Grants access to everyone
+        },
+        Action = "s3:GetObject",
+        Resource = "${aws_s3_bucket.static_site.arn}/*" # Grants access to objects within the bucket
+      },
+    ]
+  })
+}
 
+resource "aws_s3_bucket_ownership_controls" "static_website_acl_ownership" {
+  # Required to allow setting ACLs
+  bucket = aws_s3_bucket.static_site.bucket
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+
+# Create SQS
 resource "aws_sqs_queue" "notification" {
   name = "js-queue-items"
+}
+
+# Calculate future time to schedule the Lambda run using eventbridge scheduler
+locals {
+  # This will be the time 5 minutes from when terraform apply starts (roughly)
+  future_time = timeadd(timestamp(), "10m")
 }
 
 #Eventbridge Scheduler
@@ -47,13 +82,14 @@ resource "aws_scheduler_schedule" "daily_trigger" {
     mode = "OFF"
   }
 
-  schedule_expression = "rate(1 hours)"
+  schedule_expression = "at(${local.future_time})" #"rate(1 hours)"
 
   target {
     arn      = aws_lambda_function.sentimentAnalyzer.arn
     role_arn = aws_iam_role.eventbridge_scheduler.arn
 
   }
+  depends_on = [aws_lambda_function.sentimentAnalyzer]
 }
 
 resource "aws_dynamodb_table" "customerReviews" {

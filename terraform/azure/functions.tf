@@ -57,6 +57,7 @@ resource "azurerm_key_vault_access_policy" "func_app_secret_get" {
 
   secret_permissions = [
     "Get", # Allow the Function App to get the secret value
+    "List" 
   ]
 }
 
