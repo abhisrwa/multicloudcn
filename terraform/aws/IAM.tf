@@ -13,7 +13,8 @@ resource "aws_iam_role" "fetchSummary_role" {
   })
 }
 
-# Lambda IAM Role -- for sentimentAnalyzer lambda 
+# Lambda IAM Role -- for sentimentAnalyzer lambda function
+
 resource "aws_iam_role" "sentimentAnalyzer_role" {
   name = "sentimentAnalyzer_role"
   assume_role_policy = jsonencode({
@@ -84,6 +85,7 @@ resource "aws_iam_policy" "lambda_sqs_write_policy" {
       Resource = aws_sqs_queue.notification.arn
     }]
   })
+  depends_on = [ aws_sqs_queue.notification ]
 }
 
 # --- IAM Policy for Lambda Logging ---
@@ -126,10 +128,11 @@ resource "aws_iam_policy" "lambda_secretsmanager_policy" {
         ],
         Effect = "Allow",
         # Grant access to the specific secret
-        Resource = data.aws_secretsmanager_secret.sendgrid_api_key_secret.arn
+        Resource = aws_secretsmanager_secret.sendgrid_api_key_secret.arn
       },
     ]
   })
+  depends_on = [ aws_secretsmanager_secret.sendgrid_api_key_secret ]
 }
 
 #Attach policies to Lambda function role##
@@ -204,5 +207,6 @@ resource "aws_iam_role_policy" "eventbridge_scheduler_invoke_lambda" {
       Resource = aws_lambda_function.sentimentAnalyzer.arn
     }]
   })
+  depends_on = [ aws_lambda_function.sentimentAnalyzer ]
 }
 
