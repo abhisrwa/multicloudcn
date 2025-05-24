@@ -66,8 +66,4 @@ resource "azurerm_storage_container" "tfstate" {
 #  name                  = "codebucket"
 #  storage_account_name  = azurerm_storage_account.code_bucket.name
 #  container_access_type = "private"
-<<<<<<< HEAD
 #}
-=======
-#}
->>>>>>> 6cd4a82211fbb8b0aeb435148734a71d270b0adc
